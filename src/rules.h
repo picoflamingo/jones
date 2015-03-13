@@ -17,6 +17,7 @@ typedef struct rule_t
   BASIC_ITEM  bi;
   char        *ffact;
   RULE_IMP    f;
+  void        *data;
 } RULE;
 
 #ifdef __cplusplus
@@ -28,11 +29,14 @@ extern "C" {
   int   jones_resolve ();
 
   int   jones_rule_add (RULE *r);
+  int   jones_rule_set_data (RULE *r, void *data);
+  void* jones_rule_get_data (RULE *r);
 
   RULE* jones_rule_new (char *id, RULE_IMP f);
   int   jones_rule_add_firing_fact (RULE *r, char *fid);
   int   jones_rule_eval (RULE *r, OBJECT *o);
   int   jones_rule_resolve_fact (OBJECT *o, char *fid);
+
 #ifdef __cplusplus
 }
 #endif

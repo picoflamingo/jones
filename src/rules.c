@@ -1,8 +1,12 @@
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "rules.h"
+
+#include "ipython.h"
 
 static LIST  *_rules = NULL;
 
@@ -10,6 +14,8 @@ int
 jones_rule_init ()
 {
   _rules = list_new ("rules", 16, sizeof (RULE*));
+
+
   return 0;
 }
 
@@ -41,6 +47,8 @@ jones_rule_add (RULE *r)
 }
 
 
+
+
 int   
 jones_resolve ()
 {
@@ -66,6 +74,7 @@ jones_rule_new (char *id, RULE_IMP f)
   r->bi.id = strdup (id);
   r->f = f;
   r->ffact = NULL;
+  r->data = NULL;
   return r;
 }
 
@@ -81,6 +90,19 @@ jones_rule_add_firing_fact (RULE *r, char *fid)
   return 0;		     
 }
 
+int   
+jones_rule_set_data (RULE *r, void *data)
+{
+  if (!r) return -1;
+  r->data = data;
+  return 0;
+}
+void* 
+jones_rule_get_data (RULE *r)
+{
+  if (!r) return NULL;
+  return r->data;
+}
 
 int   
 jones_rule_eval (RULE *r, OBJECT *o)

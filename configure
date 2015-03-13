@@ -619,6 +619,8 @@ LIBOBJS
 JONES_DATADIR
 JONES_BASEDIR
 MY_TOP_DIR
+PLIBS
+PFLAGS
 BUILD_FLAGS
 MAINT
 MAINTAINER_MODE_FALSE
@@ -11287,6 +11289,11 @@ CFLAGS=" ${BUILD_FLAGS}"
 
 MY_TOP_DIR="`pwd`"
 
+PFLAGS=`python-config --cflags`
+PLIBS=`python-config --libs`
+
+
+
 
 
 
@@ -13693,3 +13700,7 @@ $as_echo "--- Prefix      : ${JONES_BASEDIR}" >&6; }
 $as_echo "--- Data dir    : ${JONES_DATADIR}" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: --- BUILD_FLAGS : ${BUILD_FLAGS}" >&5
 $as_echo "--- BUILD_FLAGS : ${BUILD_FLAGS}" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: --- PFLAGS      : ${PFLAGS}" >&5
+$as_echo "--- PFLAGS      : ${PFLAGS}" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: --- PLIBS       : ${PLIBS}" >&5
+$as_echo "--- PLIBS       : ${PLIBS}" >&6; }

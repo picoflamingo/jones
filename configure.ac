@@ -49,6 +49,11 @@ AC_SUBST(BUILD_FLAGS)
 
 MY_TOP_DIR="`pwd`"
 
+PFLAGS=`python-config --cflags`
+PLIBS=`python-config --libs`
+
+AC_SUBST(PFLAGS)
+AC_SUBST(PLIBS)
 
 AC_SUBST(MY_TOP_DIR)
 
@@ -83,3 +88,5 @@ AC_MSG_RESULT(--- HOST        : ${host})
 AC_MSG_RESULT(--- Prefix      : ${JONES_BASEDIR})
 AC_MSG_RESULT(--- Data dir    : ${JONES_DATADIR})
 AC_MSG_RESULT(--- BUILD_FLAGS : ${BUILD_FLAGS})
+AC_MSG_RESULT(--- PFLAGS      : ${PFLAGS})
+AC_MSG_RESULT(--- PLIBS       : ${PLIBS})

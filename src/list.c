@@ -19,6 +19,7 @@ list_new (char *id, int size, int item_size)
   bi = (BASIC_ITEM*)l;
   bi->id = strdup (id);
   l->size = size;
+  l->n = 0 ;
   l->item_size = item_size;
   l->item_free = NULL;
   if ((l->item = malloc (sizeof(void*) * size)) == NULL)

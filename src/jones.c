@@ -1,3 +1,6 @@
+// export PYTHONPATH=.
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,8 +51,12 @@ main (int argc, char *argv[])
   printf ("JONEs Version " VERSION "\n");
   jones_obj_init ();
   jones_rule_init ();
+  jones_python_init ();
+
+
 
   /* Simple facts test */
+  /*
   jones_obj_add (jones_obj_new ("John"));
   jones_obj_add (jones_obj_new ("Sally"));
   jones_obj_add (jones_obj_new ("Jane"));
@@ -64,7 +71,11 @@ main (int argc, char *argv[])
   jones_obj_add_fact (o1, f);
 
   jones_obj_get_or_create_fact (jones_obj_get("Jane"), "IS_FEMALE", FACT_TRUE);
-
+  */
+  jones_python_load_script ("jones");
+  printf ("......................................\n");
+  jones_python_populate ();
+  printf ("......................................\n");
   jones_obj_dump ();
 
   /* Add some rules */
@@ -75,6 +86,9 @@ main (int argc, char *argv[])
 
   jones_rule_resolve_fact (jones_obj_get ("Jane"), 
 			   "IS_SISTER_OF");
+
+  jones_rule_resolve_fact (jones_obj_get ("John"), 
+			   "IS_BROTHER_OF");
 
   return 0;
 } 
