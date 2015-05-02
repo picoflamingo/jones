@@ -1,31 +1,52 @@
+/*
+ * Jones: A basic rule-engine system
+ * Copyright (c) 2015 David Mart.nez Oliveira
+ *
+ * This file is part of Jones
+ *
+ * Jones is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Jones is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "list.h"
+
+#include <nyx_list.h>
+
 #include "facts.h"
 #include "objs.h"
 
+static NYX_LIST *_obj_list = NULL;
 
-static LIST *_obj_list = NULL;
-
-LIST*
-jones_obj_get_list ()
+NYX_LIST*
+jones_obj_get_list (void)
 {
   return _obj_list;
 }
 
 
 int    
-jones_obj_init ()
+jones_obj_init (void)
 {
-  _obj_list = list_new ("object_list", 1024, sizeof (OBJECT));
+  _obj_list = nyx_list_new ("object_list", 1024, sizeof (OBJECT));
 
   return 0;
 }
 
 int     
-jones_obj_dump ()
+jones_obj_dump (void)
 {
 
   OBJECT  *o;
@@ -44,7 +65,7 @@ jones_obj_dump ()
 	}
       printf ("\n");
     }
-  printf ("===============================================\n");
+  //printf ("===============================================\n");
 
   return 0;
 }
@@ -58,7 +79,7 @@ jones_obj_get (char *id)
       return NULL;
     }
   if (!id) return NULL;
-  return (OBJECT*) list_find_item (_obj_list, id);
+  return (OBJECT*) nyx_list_find_item (_obj_list, id);
 }
 
 int    
@@ -70,7 +91,8 @@ jones_obj_add (OBJECT *o)
       return -1;
     }
   if (!o) return -1;
-  list_add_item (_obj_list, o);
+
+  nyx_list_add_item (_obj_list, o);
 
   return 0;
 }
@@ -86,18 +108,19 @@ jones_obj_del (OBJECT *o)
 OBJECT* 
 jones_obj_new (char *id)
 {
-  BASIC_ITEM *bi;
-  OBJECT     *o;
+  NYX_BASIC_ITEM *bi;
+  OBJECT         *o;
 
   if (!id) return NULL;
 
-  if ((o = (OBJECT*)malloc (sizeof(OBJECT))) == NULL)
+  if ((o = (OBJECT*) malloc (sizeof(OBJECT))) == NULL)
     {
       fprintf (stderr, "Cannot create object %s\n", id);
     }
-  bi = (BASIC_ITEM*) o;
+  bi = (NYX_BASIC_ITEM*) o;
   bi->id = strdup (id);
-  o->facts = list_new ("obj_fact_list", 1, sizeof (FACT*));
+  o->facts = nyx_list_new ("obj_fact_list", 1, sizeof (FACT*));
+
   return o;
 }
 
@@ -116,13 +139,13 @@ jones_obj_add_fact (OBJECT *o, FACT *f)
   if (!o) return -1;
   if (!f) return -1;
 
-  if ((f1 = (FACT*) list_find_item (o->facts, f->bi.id)))
+  if ((f1 = (FACT*) nyx_list_find_item (o->facts, f->bi.id)))
     {
       jones_fact_set (f1, jones_fact_get (f));
     }
   else
     {
-      list_add_item (o->facts, f);
+      nyx_list_add_item (o->facts, f);
       jones_fact_set_obj (f, o);
     }
   return -1;
@@ -140,10 +163,11 @@ jones_obj_get_fact (OBJECT *o, char *id)
   if (!o) return NULL;
   if (!id) return NULL;
 
-  return (FACT*)list_find_item (o->facts, id);
+  return (FACT*) nyx_list_find_item (o->facts, id);
 }
  
-FACT *  jones_obj_get_fact_by_indx (OBJECT *o, int indx)
+FACT *  
+jones_obj_get_fact_by_indx (OBJECT *o, int indx)
 {
   return 0;
 }
@@ -152,6 +176,7 @@ FACT*
 jones_obj_get_or_create_fact (OBJECT *o, char *id, int val)
 {
   FACT* f;
+
   if (!o) return NULL;
   if (!id) return NULL;
 
@@ -162,9 +187,32 @@ jones_obj_get_or_create_fact (OBJECT *o, char *id, int val)
       jones_obj_add_fact (o, f);
       
     }
-    jones_fact_set (f, val);
+  jones_fact_set (f, val);
+
   return f;
 }
+
+
+FACT*
+jones_obj_get_or_create_fact1 (OBJECT *o, char *id, int val)
+{
+  FACT* f;
+
+  if (!o) return NULL;
+  if (!id) return NULL;
+
+  if ((f = jones_obj_get_fact (o, id)) == NULL)
+    {
+      f = jones_fact_new (id);
+      jones_fact_set_obj (f, o);
+      jones_obj_add_fact (o, f);
+      
+    }
+
+  jones_fact_set1 (f, val);
+  return f;
+}
+
 
 int     
 jones_obj_get_fact_val (OBJECT *o, char *id)

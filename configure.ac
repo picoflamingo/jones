@@ -21,6 +21,7 @@ AC_PROG_LIBTOOL
 # Checks for libraries
 # FIXME: Here we should check for OpenScenegraph, xine, etc...
 AC_CHECK_LIB(dl, main)
+AC_CHECK_LIB(nyx, main)
 
 # Checks for header files
 AC_CONFIG_HEADERS([config.h])
@@ -46,6 +47,9 @@ fi
 
 CFLAGS=" ${BUILD_FLAGS}"
 AC_SUBST(BUILD_FLAGS)
+
+BUILD_LIBS="-lnyx"
+AC_SUBST(BUILD_LIBS)
 
 MY_TOP_DIR="`pwd`"
 
@@ -88,5 +92,6 @@ AC_MSG_RESULT(--- HOST        : ${host})
 AC_MSG_RESULT(--- Prefix      : ${JONES_BASEDIR})
 AC_MSG_RESULT(--- Data dir    : ${JONES_DATADIR})
 AC_MSG_RESULT(--- BUILD_FLAGS : ${BUILD_FLAGS})
+AC_MSG_RESULT(--- BUILD_LIBS  : ${BUILD_LIBS})
 AC_MSG_RESULT(--- PFLAGS      : ${PFLAGS})
 AC_MSG_RESULT(--- PLIBS       : ${PLIBS})

@@ -1,22 +1,31 @@
-#AM_CFLAGS=-I$(srcdir)/../include
+#
+# Jones: A basic rule-engine system
+# Copyright (c) 2015 David Mart.nez Oliveira
+#
+# This file is part of Jones
+#
+# Jones is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Jones is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Jones.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 AM_CFLAGS=${PFLAGS}
 
 bin_PROGRAMS=jones
 
 
-jones_SOURCES=jones.c facts.c objs.c rules.c list.c ipython.c
-jones_LDADD=${PLIBS}
-#jones_LDADD=./libmia.la
+jones_SOURCES=jones.c facts.c objs.c rules.c ipython.c
+jones_LDADD=${PLIBS} ${BUILD_LIBS} 
 
 
-
-# mobiNET Libraries
-
-EXTRA_DIST= facts.h objs.h rules.h list.h ipython.h
-include_HEADERS= facts.h objs.h rules.h list.h ipython.h
-
-#lib_LTLIBRARIES = libmia.la
-#libmia_la_SOURCES= mia.c
-#libmia_la_LIBADD=-lbluetooth
-
+EXTRA_DIST= facts.h objs.h rules.h ipython.h
+include_HEADERS= facts.h objs.h rules.h ipython.h

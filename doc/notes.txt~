@@ -103,8 +103,14 @@ To derive gender and father predicate on John we need more information or qualif
 
 References
 --
+PROLOG
 http://en.wikipedia.org/wiki/Prolog
 http://en.wikibooks.org/wiki/Prolog
 http://en.wikipedia.org/wiki/First-order_logic
 http://en.wikipedia.org/wiki/Horn_clause
 http://en.wikipedia.org/wiki/SLD_resolution
+
+JESS
+http://www.jessrules.com/jess/docs/71/
+http://www.jessrules.com/jess/docs/index.shtml
+http://www.jessrules.com/jess/docs/71/rete.html#

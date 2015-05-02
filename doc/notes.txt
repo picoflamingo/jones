@@ -101,6 +101,16 @@ Albert:
 (* new generated facts)
 To derive gender and father predicate on John we need more information or qualifiers on the Rules (if John is a parent and exist a mother)
 
+----------------------------------------------------
+IDEAS
+----------------------------------------------------
+Create datasets clones and set unknown facts to a given value.
+Run the rules and try to find contradictions. That will assess FACT values (Ad absurdum reduction)
+
+We need a proper way to fire rules
+
+
+
 References
 --
 PROLOG

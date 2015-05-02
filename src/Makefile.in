@@ -55,10 +55,10 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_jones_OBJECTS = jones.$(OBJEXT) facts.$(OBJEXT) objs.$(OBJEXT) \
-	rules.$(OBJEXT) list.$(OBJEXT) ipython.$(OBJEXT)
+	rules.$(OBJEXT) ipython.$(OBJEXT)
 jones_OBJECTS = $(am_jones_OBJECTS)
 am__DEPENDENCIES_1 =
-jones_DEPENDENCIES = $(am__DEPENDENCIES_1)
+jones_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -113,6 +113,7 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 BUILD_FLAGS = @BUILD_FLAGS@
+BUILD_LIBS = @BUILD_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -226,13 +227,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = ${PFLAGS}
-jones_SOURCES = jones.c facts.c objs.c rules.c list.c ipython.c
-jones_LDADD = ${PLIBS}
+jones_SOURCES = jones.c facts.c objs.c rules.c ipython.c
+jones_LDADD = ${PLIBS} ${BUILD_LIBS} 
 #jones_LDADD=./libmia.la
 
 # mobiNET Libraries
-EXTRA_DIST = facts.h objs.h rules.h list.h ipython.h
-include_HEADERS = facts.h objs.h rules.h list.h ipython.h
+EXTRA_DIST = facts.h objs.h rules.h ipython.h
+include_HEADERS = facts.h objs.h rules.h ipython.h
 all: all-am
 
 .SUFFIXES:
@@ -323,7 +324,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/facts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipython.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jones.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/objs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rules.Po@am__quote@
 
