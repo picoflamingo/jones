@@ -27,5 +27,5 @@ jones_SOURCES=jones.c facts.c objs.c rules.c ipython.c
 jones_LDADD=${PLIBS} ${BUILD_LIBS} 
 
 
-EXTRA_DIST= facts.h objs.h rules.h ipython.h
+EXTRA_DIST= facts.h objs.h rules.h ipython.h jones.py test.py
 include_HEADERS= facts.h objs.h rules.h ipython.h

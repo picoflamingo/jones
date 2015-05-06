@@ -15,7 +15,25 @@
 
 @SET_MAKE@
 
-#AM_CFLAGS=-I$(srcdir)/../include
+#
+# Jones: A basic rule-engine system
+# Copyright (c) 2015 David Mart.nez Oliveira
+#
+# This file is part of Jones
+#
+# Jones is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Jones is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Jones.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 
 VPATH = @srcdir@
@@ -229,10 +247,7 @@ top_srcdir = @top_srcdir@
 AM_CFLAGS = ${PFLAGS}
 jones_SOURCES = jones.c facts.c objs.c rules.c ipython.c
 jones_LDADD = ${PLIBS} ${BUILD_LIBS} 
-#jones_LDADD=./libmia.la
-
-# mobiNET Libraries
-EXTRA_DIST = facts.h objs.h rules.h ipython.h
+EXTRA_DIST = facts.h objs.h rules.h ipython.h jones.py test.py
 include_HEADERS = facts.h objs.h rules.h ipython.h
 all: all-am
 
@@ -578,10 +593,6 @@ uninstall-am: uninstall-binPROGRAMS uninstall-includeHEADERS
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-includeHEADERS
 
-
-#lib_LTLIBRARIES = libmia.la
-#libmia_la_SOURCES= mia.c
-#libmia_la_LIBADD=-lbluetooth
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
