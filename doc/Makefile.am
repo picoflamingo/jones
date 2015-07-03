@@ -1,1 +1,1 @@
-EXTRA_DIST=notes.txt
+EXTRA_DIST=notes.txt cmdline.txt

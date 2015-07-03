@@ -1,22 +1,3 @@
-/*
- * Jones: A basic rule-engine system
- * Copyright (c) 2015 David Mart.nez Oliveira
- *
- * This file is part of Jones
- *
- * Jones is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Jones is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #include "ipython.h"
 
@@ -27,6 +8,8 @@
 #include "rules.h"
 
 
+
+//static LIST  *_rules = NULL;
 static NYX_LIST  *_rules = NULL;
 static int       _iter = 0;
 
@@ -39,6 +22,7 @@ jones_rule_get_iter ()
 int   
 jones_rule_init (void)
 {
+  //_rules = list_new ("rules", 16, sizeof (RULE*));
   _rules = nyx_list_new ("rules", 16, sizeof (RULE*));
   _iter = 0;
 
@@ -68,6 +52,7 @@ jones_rule_add (RULE *r)
 {
   if (!r) return -1;
 
+  //list_add_item (_rules, r);
   nyx_list_add_item (_rules, r);
   return 0;
 }
@@ -179,10 +164,10 @@ jones_rule_full_eval ()
 
     } while (0);
   //printf ("%d Rules fired\n", keep_going);
-  printf ("--[A]------------------------------------------------\n");
+  //printf ("--[A]------------------------------------------------\n");
   _iter ++;
-  jones_obj_dump();
-  printf ("-[%d]--------------------------------------------------------\n", _iter);
+  //jones_obj_dump();
+  //printf ("-[%d]--------------------------------------------------------\n", _iter);
 
 
   return keep_going;
@@ -234,7 +219,7 @@ jones_rule_resolve_fact (OBJECT *o, char *fid)
   printf ("Resolving %s on object %s\n", fid, OBJ_ID(o)) ;
 
   /* Check if FACT exists and if it is known */
-
+  //if ((f = list_find_item (o->facts, fid)))
   if ((f = nyx_list_find_item (o->facts, fid)))
     {
       /* If fact exists check value */ 
@@ -288,4 +273,75 @@ jones_rule_resolve_fact (OBJECT *o, char *fid)
       printf ("**** NOT SOLVED ****\n");
     } while (keep_going);
   return 1;
+}
+
+
+SIMPLE_RULE_DATA* 
+jones_rule_add_srule_data (RULE *r, char *rule)
+{
+  char             f1[1024], f2[1024];
+  SIMPLE_RULE_DATA *s;
+
+  if (!rule) return NULL;
+  
+  if ((s = malloc (sizeof (SIMPLE_RULE_DATA))) == NULL)
+    return NULL;
+
+  /* Parse string */
+  sscanf (rule, "%s -> %s", f1, f2);
+  if (f1[0] == '!') 
+    {
+      s->n1 = 0; 
+      s->f1 = strdup (f1 + 1);
+    }
+  else 
+    {
+      s->n1 = 1;
+      s->f1 = strdup (f1);
+    }
+
+  if (f2[0] == '!') 
+    {
+      s->n2 = 0; 
+      s->f2 = strdup (f2 + 1);
+    }
+  else 
+    {
+      s->n2 = 1;
+      s->f2 = strdup (f2);
+    }
+
+  /* Store data */
+  jones_rule_set_data (r, s);
+  jones_rule_add_firing_fact (r, s->f1);
+  jones_rule_add (r);
+  return s;
+
+}
+
+int   
+jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f)
+{
+  SIMPLE_RULE_DATA *s = jones_rule_get_data (r);
+  FACT  *f1, *f2;
+  
+  if ((f1 = jones_obj_get_fact (o, s->f1)) == NULL)
+    {
+      fprintf (stderr, "SRULE (%s): Cannot find %s on object %s\n",
+	       OBJ_ID(r), s->f1, OBJ_ID(o));
+      return 0;
+    }
+  if (f1->value == s->n1)
+    {
+      if ((f2 = jones_obj_get_fact (o, s->f2)) == NULL)
+	{
+	  /* FIXME: We should create the fact if it does not exists...*/
+	  fprintf (stderr, "SRULE (%s): Cannot find %s on object %s\n",
+		   OBJ_ID(r), s->f2, OBJ_ID(o));
+	  return 0;
+	}
+      jones_fact_set1 (f2, s->n2);
+    }
+
+  return 0;
 }

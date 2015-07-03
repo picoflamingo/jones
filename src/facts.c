@@ -1,29 +1,8 @@
-/*
- * Jones: A basic rule-engine system
- * Copyright (c) 2015 David Mart.nez Oliveira
- *
- * This file is part of Jones
- *
- * Jones is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Jones is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
+//#include "list.h"
 #include <nyx_list.h>
 #include "facts.h"
 
@@ -65,7 +44,7 @@ jones_fact_new (char *id)
     }
   f->bi.id = strdup (id);
   f->obj = NULL;
-
+  //f->olist = list_new ("fact_obj_list", 10, sizeof(void*));
   f->olist = nyx_list_new ("fact_obj_list", 10, sizeof(void*));
   f->value = FACT_UNKNOWN;
   f->fire = 0;
@@ -78,7 +57,7 @@ jones_fact_free (FACT *f)
 {
   if (!f) return -1;
 
-
+  //if (f->olist) list_free (f->olist);
   if (f->olist) nyx_list_free (f->olist);
   if (f->bi.id) free (f->bi.id);
   free (f);
@@ -157,6 +136,10 @@ jones_fact_add_obj (FACT *f, _OBJ o)
   if (!f) return -1;
   if (!o) return -1;
 
+  /*
+  if (!list_find_item (f->olist, OBJ_ID(o)) )
+      list_add_item (f->olist, o);
+  */
   if (!nyx_list_find_item (f->olist, OBJ_ID(o)) )
       nyx_list_add_item (f->olist, o);
 
@@ -176,5 +159,18 @@ jones_fact_set_robj (FACT *f, _OBJ o, int i)
       return 0;
     }
   return -1;
+
+}
+
+_OBJ
+jones_fact_get_robj (FACT *f, int i)
+{
+  if (!f) return -1;
+
+  if (i < f->olist->n)
+    {
+      return f->olist->item[i];
+    }
+  return NULL;
 
 }

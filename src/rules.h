@@ -1,25 +1,7 @@
-/*
- * Jones: A basic rule-engine system
- * Copyright (c) 2015 David Mart.nez Oliveira
- *
- * This file is part of Jones
- *
- * Jones is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Jones is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
-*/
 #ifndef RULES_H
 #define RULES_H
 
+//#include "list.h"
 #include <nyx_list.h>
 #include "facts.h"
 #include "objs.h"
@@ -39,6 +21,13 @@ typedef struct rule_t
   void            *data;
 } RULE;
 
+typedef struct simple_rule_data_t
+{
+  char *f1;
+  char *f2;
+  int  n1, n2;
+} SIMPLE_RULE_DATA;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,6 +45,10 @@ extern "C" {
   int   jones_rule_eval (RULE *r, OBJECT *o);
   int   jones_rule_resolve_fact (OBJECT *o, char *fid);
   int   jones_rule_full_eval ();
+
+  SIMPLE_RULE_DATA* jones_rule_add_srule_data (RULE *r, char *rule);
+  int   jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f);
+
 #ifdef __cplusplus
 }
 #endif

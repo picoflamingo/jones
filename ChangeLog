@@ -1,3 +1,6 @@
+Fri Jul  3 21:38:24 CEST 2015
+	* Added additional python functions for easy rule writting
+
 Fri May  1 22:31:23 CEST 2015
 	* Added basic Python interface to build simple KB
 	* Added simple commandline interface to interact with KB
@@ -5,9 +8,9 @@ Fri May  1 22:31:23 CEST 2015
 	* Two simple examples included
 
 
-Thu Apr  2 17:41:53 CEST 2015
+Thu Apr  2 20:41:53 CEST 2015
 	* Update to use lists from libnyx
 
-Tue Mar 10 14:09:08 CET 2015
+Tue Mar 10 19:09:08 CET 2015
 	* Initial implementation with naive rule engine approach
 

@@ -1,23 +1,3 @@
-/*
- * Jones: A basic rule-engine system
- * Copyright (c) 2015 David Mart.nez Oliveira
- *
- * This file is part of Jones
- *
- * Jones is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Jones is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "ipython.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -300,6 +280,35 @@ jones_ipy_fact_set_robj (PyObject *self, PyObject *args)
 }
 
 
+static PyObject*
+jones_ipy_fact_get_robj (PyObject *self, PyObject *args)
+{
+  OBJECT  *o, *o1;
+  FACT    *f;
+  long    r, p_o, v, indx;
+  char    *fact_name;
+     
+  if(!PyArg_ParseTuple(args, "lsl", &p_o, &fact_name, &indx))
+    return NULL;
+
+  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
+
+  o = (OBJECT*) p_o;
+  f = (FACT*)jones_obj_get_fact (o, fact_name);
+
+  o1 = NULL;
+  /* FIXME: Process errors */
+  if (f)
+    {
+      o1 = jones_fact_get_robj (f, indx);
+      return Py_BuildValue("l", (long)o1);
+    }
+  else
+    return Py_BuildValue("l", 0);
+}
+
+
+
 /* DEBUG */
 static PyObject*
 jones_ipy_fact_dump (PyObject *self, PyObject *args)
@@ -341,6 +350,31 @@ jones_ipy_obj_get_or_create_fact (PyObject *self, PyObject *args)
   return Py_BuildValue("l", (long)f);
 }
 
+
+static PyObject*
+jones_ipy_obj_update_or_create_fact (PyObject *self, PyObject *args)
+{
+  OBJECT  *o;
+  FACT    *f;
+  long    r, p_o, v;
+  char    *fact_name;
+  int     default_val;
+     
+  if(!PyArg_ParseTuple(args, "lsl", &p_o, &fact_name, &v))
+    return NULL;
+  /*
+  printf ("Adding fact '%s' to object %ld (%p)\n", 
+	  fact_name, p_o, (OBJECT*)p_o);
+  */
+  o = (OBJECT*) p_o;
+
+  f = jones_obj_get_or_create_fact1 (o, fact_name, v);
+  jones_fact_set1 (f, v);
+
+  return Py_BuildValue("l", (long)f);
+}
+
+
 static PyObject*
 jones_ipy_obj_get_fact_val (PyObject *self, PyObject *args)
 {
@@ -362,6 +396,144 @@ jones_ipy_obj_get_fact_val (PyObject *self, PyObject *args)
 
   return Py_BuildValue("l", (long)v);
 }
+
+
+static PyObject*
+jones_ipy_obj_get_name (PyObject *self, PyObject *args)
+{
+  OBJECT  *o;
+  FACT    *f;
+  long    r, p_o, v;
+  char    *fact_name;
+  int     default_val;
+     
+  if(!PyArg_ParseTuple(args, "l", &p_o))
+    return NULL;
+  /*
+  printf ("Adding fact '%s' to object %ld (%p)\n", 
+	  fact_name, p_o, (OBJECT*)p_o);
+  */
+  o = (OBJECT*) p_o;
+
+  return Py_BuildValue("s",  OBJ_ID(o));
+}
+
+
+
+static PyObject*
+jones_ipy_imply (PyObject *self, PyObject *args)
+{
+  OBJECT  *o;
+  FACT    *f;
+  long    r, p_o, v;
+  char    *fact_name, *fact_name1, *f1, *f2;
+  int     default_val, n1, n2;
+     
+  if(!PyArg_ParseTuple(args, "lss", &p_o, &fact_name, &fact_name1))
+    return NULL;
+  /*
+  printf ("Adding fact '%s' to object %ld (%p)\n", 
+	  fact_name, p_o, (OBJECT*)p_o);
+  */
+  o = (OBJECT*) p_o;
+  n1 = n2 =1;
+  f1 = fact_name;
+  f2 = fact_name1;
+  if (fact_name[0] == '!') 
+    {
+      n1 = 0;
+      f1 = fact_name + 1;
+    }
+  if (fact_name1[0] == '!')
+    {
+      n2 = 0;
+      f2= fact_name1 + 1;
+    }
+
+  
+  v = jones_obj_get_fact_val (o, f1);
+  f = jones_obj_get_fact (o, f2);
+  if (!f) 
+    {
+      f = jones_obj_get_or_create_fact1 (o, f2, !n2);
+    }
+  if (v == n1) jones_fact_set1 (f, n2);
+  return Py_BuildValue("l", (long) (v == n1));
+}
+
+
+static PyObject*
+jones_ipy_imply_ex (PyObject *self, PyObject *args)
+{
+  OBJECT  *o, *o1;
+  FACT    *f;
+  long    r, p_o, p_o1, v;
+  char    *fact_name, *fact_name1, *f1, *f2;
+  int     default_val, n1, n2;
+     
+  if(!PyArg_ParseTuple(args, "lsls", &p_o, &fact_name, &p_o1, &fact_name1))
+    return NULL;
+  /*
+  printf ("Adding fact '%s' to object %ld (%p)\n", 
+	  fact_name, p_o, (OBJECT*)p_o);
+  */
+  o = (OBJECT*) p_o;
+  o1 = (OBJECT*) p_o1;
+  n1 = n2 =1;
+  f1 = fact_name;
+  f2 = fact_name1;
+  if (fact_name[0] == '!') 
+    {
+      n1 = 0;
+      f1 = fact_name + 1;
+    }
+  if (fact_name1[0] == '!')
+    {
+      n2 = 0;
+      f2= fact_name1 + 1;
+    }
+
+  
+  v = jones_obj_get_fact_val (o, f1);
+  f = jones_obj_get_fact (o1, f2);
+  if (!f) 
+    {
+      f = jones_obj_get_or_create_fact1 (o1, f2, !n2);
+    }
+  if (v == n1) jones_fact_set1 (f, n2);
+  else jones_fact_set1 (f, !n2);
+  return Py_BuildValue("l", (long) (v == n1));
+}
+
+
+#if 0
+static PyObject*
+jones_ipy_imply_not (PyObject *self, PyObject *args)
+{
+  OBJECT  *o, *o1;
+  FACT    *f, *f1;
+  long    r, p_o, p_o1, v;
+  char    *fact_name, *fact_name1;
+  int     default_val;
+     
+  if(!PyArg_ParseTuple(args, "lsls", &p_o, &fact_name, &p_o1, &fact_name1))
+    return NULL;
+  /*
+  printf ("Adding fact '%s' to object %ld (%p)\n", 
+	  fact_name, p_o, (OBJECT*)p_o);
+  */
+  o = (OBJECT*) p_o;
+  o1 = (OBJECT*) p_o1;
+
+  v = jones_obj_get_fact_val (o, fact_name);
+  f = jones_obj_get_fact (o1, fact_name1);
+  if (f) 
+    if (v) jones_fact_set1 (f, 0);
+    else jones_fact_set1 (f, 1);
+  return Py_BuildValue("l", (long)v);
+}
+#endif
+
 
 static PyObject*
 jones_ipy_find_obj (PyObject *self, PyObject *args)
@@ -414,6 +586,9 @@ static PyMethodDef kb_access[] =
     {"fact_set_robj", jones_ipy_fact_set_robj, METH_VARARGS,
      "Gets object associated to fact."},
 
+    {"fact_get_robj", jones_ipy_fact_get_robj, METH_VARARGS,
+     "Gets object associated to fact."},
+
 
     {"find_obj", jones_ipy_find_obj, METH_VARARGS,
      "Finds and object by name."},
@@ -425,9 +600,25 @@ static PyMethodDef kb_access[] =
     {"obj_get_fact_val", jones_ipy_obj_get_fact_val, METH_VARARGS,
      "Gets the value associated to the given fact on the given object."},
 
+    {"imply", jones_ipy_imply, METH_VARARGS,
+     "DEBUG: RUn a simple if X -> Y."},
+
+    {"imply_ex", jones_ipy_imply_ex, METH_VARARGS,
+     "DEBUG: RUn a simple if X then Y else ! Y."},
+
+    {"obj_get_name", jones_ipy_obj_get_name, METH_VARARGS,
+     "DEBUG: Returns the name of the given object."},
+
+    /*
+    {"imply_not", jones_ipy_imply_not, METH_VARARGS,
+     "DEBUG: RUn a simple if X -> !Y."},
+    */
 
     {"fact_dump", jones_ipy_fact_dump, METH_VARARGS,
      "DEBUG: Dumps the provided fact to the console."},
+
+    {"obj_update_or_create_fact", jones_ipy_obj_update_or_create_fact, METH_VARARGS,
+     "Gets a fact assocaited to an object and creates it if not exists."},
     
 
     {NULL, NULL, 0, NULL}
@@ -455,7 +646,10 @@ jones_python_load_script (char *name)
   pName = PyString_FromString(name);
   pModule = PyImport_Import(pName);
   if (PyErr_Occurred())
-    PyErr_Print();
+    {
+      PyErr_Print();
+      exit (1);
+    }
   Py_DECREF(pName);
   //printf ("+ Loading script (%p)\n", pModule);
   printf ("+ Loading script: %s\n", name);

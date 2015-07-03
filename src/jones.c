@@ -1,23 +1,3 @@
-/*
- * Jones: A basic rule-engine system
- * Copyright (c) 2015 David Mart.nez Oliveira
- *
- * This file is part of Jones
- *
- * Jones is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Jones is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 // export PYTHONPATH=.
 
 #include "ipython.h"
@@ -30,14 +10,17 @@
 #include "rules.h"
 
 
-#define VERSION "0.1"
+/*FIXME: Get this from autools */
+#define VERSION "0.1.2"
 
 static int auto_eval = 0;
+static int rule_id = 100;
 
 int
 parse (char *cmd)
 {
   char p1[2048], p2[2048], p3[2048], p4[2048];
+
 
   if (!strncasecmp (cmd, "exit", strlen ("exit")) || cmd[0] == 'q')
     {
@@ -58,11 +41,13 @@ parse (char *cmd)
     {
       sscanf (cmd + strlen ("obj "), "%s", p1);
       jones_obj_add (jones_obj_new (p1));
+      printf ("JONES: Object '%s' created\n", p1);
     }
   else if (!strncasecmp (cmd, "fact2", strlen ("fact2")))
     {
       sscanf (cmd + strlen ("fact2 "), "%s %s %s %s", p1, p2, p4, p3);
-      printf ("  Adding fact (%s) to object (%s) with value '%s'\n", p1, p2, p3);
+      printf ("JONES:Adding fact (%s) to object (%s) with value '%s'\n", 
+	      p1, p2, p3);
       OBJECT *o = jones_obj_get (p1);
       if (!o)
 	{
@@ -82,7 +67,10 @@ parse (char *cmd)
       else jones_fact_set (f, FACT_UNKNOWN);
 
       jones_fact_set_iter (f, jones_rule_get_iter());
-      jones_fact_add_obj (f, o1);
+      if (f->olist->n == 0)
+	jones_fact_add_obj (f, o1);
+      else
+	jones_fact_set_robj (f, o1,0);
       //jones_obj_add_fact (o, f);
 
       //jones_obj_dump ();
@@ -90,7 +78,7 @@ parse (char *cmd)
   else if (!strncasecmp (cmd, "fact", strlen ("fact")))
     {
       sscanf (cmd + strlen ("fact "), "%s %s %s", p1, p2, p3);
-      printf (" < Adding/Setting  fact (%s) to object (%s) with value '%s'\n", p1, p2, p3);
+      printf ("JONES:Adding/Setting  fact (%s) to object (%s) with value '%s'\n", p1, p2, p3);
       OBJECT *o = jones_obj_get (p1);
       if (!o)
 	{
@@ -108,6 +96,26 @@ parse (char *cmd)
       //jones_obj_add_fact (o, f);
 
       //jones_obj_dump ();
+    }
+  else if (!strncasecmp (cmd, "srule", strlen ("srule")))
+    {
+      char f1[1024], f2[1024], rname[1024], *aux, *str;
+      RULE   *r;
+
+      str = cmd;
+      str += strlen("srule") + 1;
+      str[strlen(str) - 1] = 0;
+      //sscanf (str, "%s -> %s", f1, f2);
+      snprintf (rname, 1024, "srule%03d", rule_id);
+      //printf ("Registering Rule %s '%s'->'%s'\n", rname, f1, f2);
+      rule_id++;
+      r = jones_rule_new (rname, jones_rule_simple_rule);
+      jones_rule_add_srule_data (r, str);
+      printf ("JONES:New simple rule created with id '%s'\n", rname);
+    }
+  else if (cmd[strlen(cmd) - 2] == '?') // FACT Query
+    {
+      jones_obj_fact_query (cmd);
     }
 
   return 1;

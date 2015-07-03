@@ -109,6 +109,7 @@ Run the rules and try to find contradictions. That will assess FACT values (Ad a
 
 We need a proper way to fire rules
 
+helper function to create complementary facts and associated rules
 
 
 References
