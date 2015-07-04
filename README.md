@@ -23,6 +23,9 @@ When the application is executed without any parameter, the system will try to l
 *Note that the file extension is omitted. Command above loads file test.py*
 
 
+
+Check doc/cmdline.txt for details
+
 .
 
 This file is part of Jones
