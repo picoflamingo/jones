@@ -299,6 +299,7 @@ SIMPLE_RULE_DATA*
 jones_rule_add_srule_data (RULE *r, char *rule)
 {
   char             f1[1024], f2[1024];
+  char             *aux, *aux1;
   SIMPLE_RULE_DATA *s;
 
   if (!rule) return NULL;
@@ -318,18 +319,31 @@ jones_rule_add_srule_data (RULE *r, char *rule)
       s->n1 = 1;
       s->f1 = strdup (f1);
     }
+  /* For now we do not allow object spec on left side */
+  s->op1 = NULL;
+  strcpy (s->o1, "This");
 
   if (f2[0] == '!') 
     {
       s->n2 = 0; 
-      s->f2 = strdup (f2 + 1);
+      aux = f2 + 1;
     }
   else 
     {
       s->n2 = 1;
-      s->f2 = strdup (f2);
+      aux = f2;
+    }
+  /* Check if we have are targetting an specific object*/
+  if ((aux1 = strchr (aux, '.')) != NULL)
+    {
+      *aux1 = 0;
+      s->o2 = strdup (aux);
+      s->op2 = jones_obj_get (aux);
+      aux = aux1 + 1;
+      printf ("resp : %d (%s)\n", s->o2, aux);
     }
 
+  s->f2 = strdup (aux);
   /* Store data */
   jones_rule_set_data (r, s);
   jones_rule_add_firing_fact (r, s->f1);
@@ -343,24 +357,80 @@ jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f)
 {
   SIMPLE_RULE_DATA *s = jones_rule_get_data (r);
   FACT  *f1, *f2;
+  OBJECT *_o, *_o1;
+  char *lv[3] = {"FALSE", "TRUE", "UNKNOWN"};
   
-  if ((f1 = jones_obj_get_fact (o, s->f1)) == NULL)
+  _o = s->op1 == NULL ? o : s->op1;
+  if ((f1 = jones_obj_get_fact (_o, s->f1)) == NULL)
     {
       fprintf (stderr, "SRULE (%s): Cannot find %s on object %s\n",
-	       OBJ_ID(r), s->f1, OBJ_ID(o));
+	       OBJ_ID(r), s->f1, OBJ_ID(_o));
       return 0;
     }
   if (f1->value == s->n1)
     {
-      if ((f2 = jones_obj_get_fact (o, s->f2)) == NULL)
+      _o1 = s->op2 == NULL ? o : s->op2;
+      if ((f2 = jones_obj_get_fact (_o1, s->f2)) == NULL)
 	{
-	  /* FIXME: We should create the fact if it does not exists...*/
+	  /* FIXME: We should create the fact if it does not exists...
+	   */
 	  fprintf (stderr, "SRULE (%s): Cannot find %s on object %s\n",
-		   OBJ_ID(r), s->f2, OBJ_ID(o));
+		   OBJ_ID(r), s->f2, OBJ_ID(_o1));
+
 	  return 0;
 	}
-      jones_fact_set1 (f2, s->n2);
+      if (f2->value != s->n2)
+	printf ("Fact '%s' on object '%'s is %s ->  "
+		"Changes fact '%s' on object '%s' to %s\n",
+		OBJ_ID(f1), OBJ_ID(_o), lv[s->n1], OBJ_ID(f2), OBJ_ID(_o1), lv[s->n2]);
+      jones_fact_set (f2, s->n2);
     }
 
   return 0;
+}
+
+
+
+int 
+jones_rule_ask ()
+{
+  int       n_rules;
+  int       n_obj;
+  int       keep_going = 0;
+  NYX_LIST  *obj;
+  NYX_LIST  *facts;
+  int       i, j, n;
+  RULE      *r;
+  OBJECT    *o;
+  FACT      *f;
+
+  obj = jones_obj_get_list ();
+  n_obj = obj->n;
+  keep_going = 0;
+
+  /* Check or facts for all object and query user for unknown facts */
+  for (j = 0; j < n_obj; j++)
+    {
+      o = (OBJECT*) obj->item[j];
+      facts = o->facts;
+      n = facts->n;
+      for (i = 0; i < n; i++)
+	{
+	  f = (FACT*) facts->item[i];
+	  if (f->value == FACT_UNKNOWN)
+	    {
+	      char resp[1024];
+	      printf ("Question: %s %s? ", OBJ_ID(o), OBJ_ID(f));
+	      scanf ("%s", resp);
+	      if (resp[0] == 'F') f->value = FACT_FALSE;
+	      else if (resp[0] == 'T') f->value = FACT_TRUE;
+					 
+	    }
+	}
+      
+    }
+
+
+  return keep_going;
+
 }

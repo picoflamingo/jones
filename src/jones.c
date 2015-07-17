@@ -29,7 +29,7 @@
 #include "objs.h"
 #include "facts.h"
 #include "rules.h"
-
+#include "lena.h"
 
 /*FIXME: Get this from autools */
 #define VERSION "0.1.2"
@@ -118,6 +118,11 @@ parse (char *cmd)
 
       //jones_obj_dump ();
     }
+  else if (!strncasecmp (cmd, "ask", strlen ("ask")))
+    {
+      jones_rule_ask ();
+      jones_obj_dump ();
+    }
   else if (!strncasecmp (cmd, "srule", strlen ("srule")))
     {
       char f1[1024], f2[1024], rname[1024], *aux, *str;
@@ -147,6 +152,7 @@ main (int argc, char *argv[])
 {
   RULE     *r;
 
+  setenv ("PYTHONPATH", ".", 1);
   printf ("JONEs Version " VERSION "\n");
   printf ("+ JONES initialisation....");
   jones_obj_init ();
@@ -154,9 +160,7 @@ main (int argc, char *argv[])
   jones_python_init ();
 
   printf ("DONE\n");
-  if (argc == 1)
-    jones_python_load_script ("jones");
-  else
+  if (argc > 1)
     jones_python_load_script (argv[1]);
   
   printf ("......................................\n");
@@ -176,6 +180,38 @@ main (int argc, char *argv[])
 
   int flag = 1;
   char cmd[2046];
+
+  /* Test for logic expresions */
+#if 0
+  LENA_EXPR e;
+  FACT      *f;
+  e.n = 0;
+  e.i = NULL;
+  f = jones_fact_new ("FACT1");
+  jones_fact_set (f, 1);
+  jones_lena_expr_add_item (&e, OP_VAL, f);
+
+  jones_lena_expr_add_item (&e, OP_NOT, 0);
+
+  f = jones_fact_new ("FACT2");
+  jones_fact_set (f, 1);
+  jones_lena_expr_add_item (&e, OP_VAL, f);
+
+  jones_lena_expr_add_item (&e, OP_AND, 0);
+
+  f = jones_fact_new ("FACT3");
+  jones_fact_set (f, 0);
+  jones_lena_expr_add_item (&e, OP_VAL, f);
+
+  jones_lena_expr_add_item (&e, OP_OR, 0);
+  jones_lena_run (&e);
+#endif
+  LENA_EXPR *e;  
+  e=jones_lena_parse ("FACT1 ! FACT2 & FACT3 |");
+  jones_lena_run (e);
+
+
+  /* Test endss */
   while (flag)
     {
       memset (cmd, 0, 2046);

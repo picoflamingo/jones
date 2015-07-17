@@ -683,6 +683,7 @@ jones_python_populate (void)
 {
   PyObject *pFunc, *pValue;
       
+  if (!pModule) return -1;
   pFunc = PyObject_GetAttrString(pModule, "populate_kb"); 
   printf ("%s:: %p %p\n", __FUNCTION__, pModule, pFunc);
   /* pFunc is a new reference */

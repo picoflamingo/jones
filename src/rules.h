@@ -43,8 +43,12 @@ typedef struct rule_t
 
 typedef struct simple_rule_data_t
 {
+  char *o1;
   char *f1;
+  char *o2;
   char *f2;
+  OBJECT *op1, *op2;
+  FACT   *fp1, fp2;
   int  n1, n2;
 } SIMPLE_RULE_DATA;
 
@@ -65,6 +69,8 @@ extern "C" {
   int   jones_rule_eval (RULE *r, OBJECT *o);
   int   jones_rule_resolve_fact (OBJECT *o, char *fid);
   int   jones_rule_full_eval ();
+
+  int   jones_rule_ask ();
 
   SIMPLE_RULE_DATA* jones_rule_add_srule_data (RULE *r, char *rule);
   int   jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f);
