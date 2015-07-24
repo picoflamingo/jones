@@ -13,9 +13,6 @@ Jones uses libnyx generic functions, so you need to install it first (https://gi
 It does not do much yet. Check doc/cmdline.txt  for some examples
 
 
-*Note that the file extension is omitted. Command above loads file test.py*
-
-
 
 Check doc/cmdline.txt for details
 
