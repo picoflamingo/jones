@@ -1,4 +1,10 @@
 
+Sat Jul 25 00:53:57 CEST 2015
+	* Jones functions moved into a library for easy integration
+	* Added lena subsystem Logic Evaluation for Naughty Agents
+	* Added new Knowledge Base (KB) API. This will probably substitute old one
+	* Removed references to old list module
+
 Thu Jul 16 19:45:43 CEST 2015
 	* Support for simple rules and output of rule effect 
 	* New diagnosis example

@@ -3,10 +3,11 @@ JONES Command-Line Summary
 David Martinez Oliveira <dmo@papermint-designs.com>
 -----------------------------
 
-Execution with example.py
+Execution with example.py (optional)
 
-$ export PYTHONPATH=.
 $ ./jones example
+
+
 
 Available commands
 
@@ -84,3 +85,56 @@ Querying FACT 'IS_HUMAN'
 = Object 'Person' -> FACT : (Person) IS_HUMAN  -> TRUE (iter:22)
 jones > IS_MUTANT?
 Querying FACT 'IS_MUTANT'
+
+Knowledge Base simplified commands
+--------------------------------------
+* set Object.Fact [T|F|?]
+Sets Fact in object Object to the specified value. Fact and Object are created if they do not exist
+
+jones > set Jones.IS_COOL T
+Object 'Jones' does not exists. Creating it
+Fact 'IS_COOL' does not exist for object 'Jones'. Creating it
+jones > set Jones.IS_BORING ?
+
+* lena RPN_rule
+Creates a rule using Reverse Polish Notation. Lena rules are not yet fully integrated and have to be executed explicitly using the run command
+
+jones > lena Jones.IS_COOL ! Jones.IS_BORING =
+jones > lena Jones.IS_BORING ! Jones.IS_COOL =
+jones > run
+
+In-order representations of the rules above are:
+Jones.IS_BORING = !Jones.IS_COOL
+Jones.IS_COOL = !Jones.IS_BORING
+
+* run
+Executes lena rules on current knowledge base
+
+
+Full KB Commands Example
+-----------------------------------
+jones > set Jones.IS_COOL T
+Object 'Jones' does not exists. Creating it
+Fact 'IS_COOL' does not exist for object 'Jones'. Creating it
+jones > set Jones.IS_BORING ?
+Fact 'IS_BORING' does not exist for object 'Jones'. Creating it
+jones > lena Jones.IS_COOL ! Jones.IS_BORING =
+Rule baseKB_001 created
+jones > lena Jones.IS_BORING ! Jones.IS_COOL =
+Rule baseKB_002 created
+jones > run
+RULE 'baseKB_001': Sets 'IS_BORING' to 'FALSE'
+jones > list
+OBJ 0: (Jones) [2 FACTS]
+FACT : (Jones) IS_COOL  -> TRUE (iter:0)
+FACT : (Jones) IS_BORING  -> FALSE (iter:0)
+
+jones > set Jones.IS_COOL F
+jones > run
+RULE 'baseKB_001': Sets 'IS_BORING' to 'TRUE'
+jones > list
+OBJ 0: (Jones) [2 FACTS]
+FACT : (Jones) IS_COOL  -> FALSE (iter:0)
+FACT : (Jones) IS_BORING  -> TRUE (iter:0)
+
+jones > q

@@ -25,8 +25,15 @@
 #include <nyx_list.h>
 #include "facts.h"
 
-static char* fact_str[] = {"FALSE", "TRUE", "?", NULL};
+
+static char* fact_str[] = {"FALSE", "TRUE", "OOPS", "?", NULL};
 static int _iter = 1;
+
+char *
+jones_fact_str (int val)
+{
+  return fact_str[val];
+}
 
 int   
 jones_fact_dump (FACT *f)
@@ -63,7 +70,6 @@ jones_fact_new (char *id)
     }
   f->bi.id = strdup (id);
   f->obj = NULL;
-  //f->olist = list_new ("fact_obj_list", 10, sizeof(void*));
   f->olist = nyx_list_new ("fact_obj_list", 10, sizeof(void*));
   f->value = FACT_UNKNOWN;
   f->fire = 0;
@@ -76,7 +82,6 @@ jones_fact_free (FACT *f)
 {
   if (!f) return -1;
 
-  //if (f->olist) list_free (f->olist);
   if (f->olist) nyx_list_free (f->olist);
   if (f->bi.id) free (f->bi.id);
   free (f);
@@ -88,9 +93,6 @@ int
 jones_fact_set (FACT *f, int val)
 {
   if (!f) return -1;
-
-  //printf ( "[%s] Setting ::", __FUNCTION__);
-  //jones_fact_dump (f);
 
   f->value = val;
 
@@ -125,8 +127,10 @@ int
 jones_fact_set_iter (FACT *f, int val)
 {
   if (!f) return -1;
+
   f->iter = val;
   _iter = val;
+
   return 0;
 }
 
@@ -155,10 +159,6 @@ jones_fact_add_obj (FACT *f, _OBJ o)
   if (!f) return -1;
   if (!o) return -1;
 
-  /*
-  if (!list_find_item (f->olist, OBJ_ID(o)) )
-      list_add_item (f->olist, o);
-  */
   if (!nyx_list_find_item (f->olist, OBJ_ID(o)) )
       nyx_list_add_item (f->olist, o);
 

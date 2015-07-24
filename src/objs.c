@@ -27,8 +27,6 @@
 #include "facts.h"
 #include "objs.h"
 
-
-//static LIST *_obj_list = NULL;
 static NYX_LIST *_obj_list = NULL;
 
 NYX_LIST*
@@ -67,7 +65,6 @@ jones_obj_dump (void)
 	}
       printf ("\n");
     }
-  //printf ("===============================================\n");
 
   return 0;
 }
@@ -91,7 +88,9 @@ jones_obj_fact_query (char *query)
       fact++;
     }
   cnt = 0;
-  //printf ("Querying FACT '%s'\n", fact);
+#ifdef DEBUG1
+  printf ("Querying FACT '%s'\n", fact);
+#endif
   for (i = 0; i < _obj_list->n; i++)
     {
       o = (OBJECT*)_obj_list->item[i];
@@ -111,7 +110,6 @@ jones_obj_fact_query (char *query)
 	}
     }
   printf ("         %d results for query '%s'\n", cnt, copy);
-  //printf ("===============================================\n");
   free (copy);
   return 0;
 }
@@ -127,8 +125,8 @@ jones_obj_get (char *id)
       return NULL;
     }
   if (!id) return NULL;
+
   return (OBJECT*) nyx_list_find_item (_obj_list, id);
-  //return (OBJECT*) list_find_item (_obj_list, id);
 }
 
 int    
@@ -140,7 +138,7 @@ jones_obj_add (OBJECT *o)
       return -1;
     }
   if (!o) return -1;
-  //list_add_item (_obj_list, o);
+
   nyx_list_add_item (_obj_list, o);
 
   return 0;
@@ -168,7 +166,7 @@ jones_obj_new (char *id)
     }
   bi = (NYX_BASIC_ITEM*) o;
   bi->id = strdup (id);
-  //o->facts = list_new ("obj_fact_list", 1, sizeof (FACT*));
+
   o->facts = nyx_list_new ("obj_fact_list", 1, sizeof (FACT*));
   return o;
 }
@@ -176,6 +174,8 @@ jones_obj_new (char *id)
 int    
 jones_obj_free (OBJECT *o)
 {
+  fprintf (stderr, "Function %s not yet implemented\n", __FUNCTION__);
+
   return 0;
 }
 
@@ -188,14 +188,12 @@ jones_obj_add_fact (OBJECT *o, FACT *f)
   if (!o) return -1;
   if (!f) return -1;
 
-  //if ((f1 = (FACT*) list_find_item (o->facts, f->bi.id)))
   if ((f1 = (FACT*) nyx_list_find_item (o->facts, f->bi.id)))
     {
       jones_fact_set (f1, jones_fact_get (f));
     }
   else
     {
-      //list_add_item (o->facts, f);
       nyx_list_add_item (o->facts, f);
       jones_fact_set_obj (f, o);
     }
@@ -205,6 +203,8 @@ jones_obj_add_fact (OBJECT *o, FACT *f)
 
 int    jones_obj_del_fact (OBJECT *o, int indx)
 {
+  fprintf (stderr, "Function %s not yet implemented\n", __FUNCTION__);
+
   return 0;
 }
 
@@ -214,13 +214,14 @@ jones_obj_get_fact (OBJECT *o, char *id)
   if (!o) return NULL;
   if (!id) return NULL;
 
-  //return (FACT*)list_find_item (o->facts, id);
   return (FACT*) nyx_list_find_item (o->facts, id);
 }
  
 FACT *  
 jones_obj_get_fact_by_indx (OBJECT *o, int indx)
 {
+  fprintf (stderr, "Function %s not yet implemented\n", __FUNCTION__);
+
   return 0;
 }
 
@@ -239,7 +240,9 @@ jones_obj_get_or_create_fact (OBJECT *o, char *id, int val)
       jones_obj_add_fact (o, f);
       
     }
-    jones_fact_set (f, val);
+
+  jones_fact_set (f, val);
+
   return f;
 }
 
@@ -259,7 +262,7 @@ jones_obj_get_or_create_fact1 (OBJECT *o, char *id, int val)
       jones_obj_add_fact (o, f);
       jones_fact_set1 (f, val);
     }
-  //jones_fact_set1 (f, val);
+
   return f;
 }
 
@@ -277,6 +280,4 @@ jones_obj_get_fact_val (OBJECT *o, char *id)
     }
   else
     return jones_fact_get (f);
-
-
 }

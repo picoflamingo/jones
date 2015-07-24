@@ -17,59 +17,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef KB_H
+#define KB_H
 
-#ifndef LOGIC_ENG_H
-#define LOGIC_ENG_H
+#include <nyx_list.h>
+#include "lena.h"
+#include "facts.h"
+#include "objs.h"
 
-#include "nyx_list.h"
-
-/* Logical Operators */
-#define OP_VAL   1
-#define OP_NOT   2
-#define OP_AND   3
-#define OP_OR    4
-#define OP_SET   5
-#define OP_TRUE  6
-#define OP_FALSE 7
-#define OP_UNKN  8
-
-
-
-typedef struct lena_item_t
+typedef struct kb_t
 {
-  int  op;
-  void *val;
-} LENA_ITEM;
-
-typedef struct lena_op_t
-{
-  int  op;
-  int  val;
-} LENA_OP;
-
-
-typedef struct lena_expr_t
-{
-  NYX_BASIC_ITEM    bi;
-  LENA_ITEM *i;
-  int        n;
-} LENA_EXPR;
-
+  NYX_BASIC_ITEM bi;
+  NYX_LIST       *lena_rules;
+} KB;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-  LENA_EXPR* jones_lena_parse (char *str);
-  int        jones_lena_free (LENA_EXPR *e);
-  int        jones_lena_set_id (LENA_EXPR *e, char *n);
-  int        jones_lena_run (LENA_EXPR *e);
-
-  int        jones_lena_expr_add_item (LENA_EXPR *e, int op, void*val);
-
+  int        jones_kb_init (void);
+  FACT*      jones_kb_find_fact (char *id);
+  int        jones_kb_add_fact (char *id, int val, void *data);
+  LENA_EXPR* jones_kb_add_rule (char *str);
+  int        jones_kb_run (void);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

@@ -26,14 +26,11 @@
 
 #include "rules.h"
 
-
-
-//static LIST  *_rules = NULL;
 static NYX_LIST  *_rules = NULL;
 static int       _iter = 0;
 
 int
-jones_rule_get_iter ()
+jones_rule_get_iter (void)
 {
   return _iter;
 }
@@ -41,7 +38,6 @@ jones_rule_get_iter ()
 int   
 jones_rule_init (void)
 {
-  //_rules = list_new ("rules", 16, sizeof (RULE*));
   _rules = nyx_list_new ("rules", 16, sizeof (RULE*));
   _iter = 0;
 
@@ -71,11 +67,9 @@ jones_rule_add (RULE *r)
 {
   if (!r) return -1;
 
-  //list_add_item (_rules, r);
   nyx_list_add_item (_rules, r);
   return 0;
 }
-
 
 
 
@@ -140,7 +134,7 @@ jones_rule_get_data (RULE *r)
 }
 
 int 
-jones_rule_full_eval ()
+jones_rule_full_eval (void)
 {
   int       n_rules;
   int       n_obj;
@@ -182,12 +176,15 @@ jones_rule_full_eval ()
 	}
 
     } while (0);
-  //printf ("%d Rules fired\n", keep_going);
-  //printf ("--[A]------------------------------------------------\n");
+#ifdef DEBUG1
+  printf ("%d Rules fired\n", keep_going);
+  printf ("--[A]------------------------------------------------\n");
+#endif
   _iter ++;
-  //jones_obj_dump();
-  //printf ("-[%d]--------------------------------------------------------\n", _iter);
-
+#ifdef DEBUG1
+  jones_obj_dump();
+  printf ("-[%d]--------------------------------------------------------\n", _iter);
+#endif
 
   return keep_going;
 
@@ -210,8 +207,6 @@ jones_rule_eval (RULE *r, OBJECT *o)
   for (i = 0; i < n; i++)
     {
       f = (FACT*) facts->item[i];
-      //if (f->iter >= _iter) continue;
-      //f->iter = _iter;
       if (!strcmp (OBJ_ID(f), r->ffact))
 	ret += r->f (r, o, f);
     }
@@ -238,7 +233,6 @@ jones_rule_resolve_fact (OBJECT *o, char *fid)
   printf ("Resolving %s on object %s\n", fid, OBJ_ID(o)) ;
 
   /* Check if FACT exists and if it is known */
-  //if ((f = list_find_item (o->facts, fid)))
   if ((f = nyx_list_find_item (o->facts, fid)))
     {
       /* If fact exists check value */ 
@@ -266,7 +260,6 @@ jones_rule_resolve_fact (OBJECT *o, char *fid)
   n = _rules->n;
   obj = jones_obj_get_list ();
   n1 = obj->n;
-  //printf ("Firing %d Rules....\n", n);
   keep_going = 0;
   do
     {
@@ -276,7 +269,9 @@ jones_rule_resolve_fact (OBJECT *o, char *fid)
 	  for (j = 0; j < n1; j++)
 	    {
 	      o1 = (OBJECT*) obj->item[j];
-	      //printf ("Firing Rule (%s) on object (%s)\n", OBJ_ID(r), OBJ_ID(o1));
+#ifdef DEBUG1
+	      printf ("Firing Rule (%s) on object (%s)\n", OBJ_ID(r), OBJ_ID(o1));
+#endif
 	      keep_going += jones_rule_eval (r, o1);
 	      jones_obj_dump();
 	      
@@ -300,6 +295,7 @@ jones_rule_add_srule_data (RULE *r, char *rule)
 {
   char             f1[1024], f2[1024];
   char             *aux, *aux1;
+  int              nargs;
   SIMPLE_RULE_DATA *s;
 
   if (!rule) return NULL;
@@ -308,7 +304,11 @@ jones_rule_add_srule_data (RULE *r, char *rule)
     return NULL;
 
   /* Parse string */
-  sscanf (rule, "%s -> %s", f1, f2);
+  if ((nargs = sscanf (rule, "%s -> %s", f1, f2)) != 2)
+    {
+      fprintf (stderr, "Malformed expression (%s)\n", rule);
+      return NULL;
+    }
   if (f1[0] == '!') 
     {
       s->n1 = 0; 
@@ -340,7 +340,7 @@ jones_rule_add_srule_data (RULE *r, char *rule)
       s->o2 = strdup (aux);
       s->op2 = jones_obj_get (aux);
       aux = aux1 + 1;
-      printf ("resp : %d (%s)\n", s->o2, aux);
+      printf ("resp : %s (%s)\n", s->o2, aux);
     }
 
   s->f2 = strdup (aux);
@@ -372,7 +372,7 @@ jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f)
       _o1 = s->op2 == NULL ? o : s->op2;
       if ((f2 = jones_obj_get_fact (_o1, s->f2)) == NULL)
 	{
-	  /* FIXME: We should create the fact if it does not exists...
+	  /* FIXME: We should create the fact if it does not exists...??
 	   */
 	  fprintf (stderr, "SRULE (%s): Cannot find %s on object %s\n",
 		   OBJ_ID(r), s->f2, OBJ_ID(_o1));
@@ -380,7 +380,7 @@ jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f)
 	  return 0;
 	}
       if (f2->value != s->n2)
-	printf ("Fact '%s' on object '%'s is %s ->  "
+	printf ("Fact '%s' on object '%s' is %s ->  "
 		"Changes fact '%s' on object '%s' to %s\n",
 		OBJ_ID(f1), OBJ_ID(_o), lv[s->n1], OBJ_ID(f2), OBJ_ID(_o1), lv[s->n2]);
       jones_fact_set (f2, s->n2);
@@ -392,15 +392,13 @@ jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f)
 
 
 int 
-jones_rule_ask ()
+jones_rule_ask (void)
 {
-  int       n_rules;
   int       n_obj;
   int       keep_going = 0;
   NYX_LIST  *obj;
   NYX_LIST  *facts;
   int       i, j, n;
-  RULE      *r;
   OBJECT    *o;
   FACT      *f;
 
@@ -421,7 +419,7 @@ jones_rule_ask ()
 	    {
 	      char resp[1024];
 	      printf ("Question: %s %s? ", OBJ_ID(o), OBJ_ID(f));
-	      scanf ("%s", resp);
+	      if (scanf ("%s", resp) != 1) continue;
 	      if (resp[0] == 'F') f->value = FACT_FALSE;
 	      else if (resp[0] == 'T') f->value = FACT_TRUE;
 					 

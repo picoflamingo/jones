@@ -28,11 +28,11 @@ jones_LDADD=${BUILD_LIBS} ./libjones.la
 jones_la_CFLAGS=${PFLAGS}
 
 lib_LTLIBRARIES = libjones.la
-libjones_la_SOURCES = facts.c objs.c rules.c lena.c ipython.c 
+libjones_la_SOURCES = facts.c objs.c rules.c lena.c kb.c ipython.c 
 libjones_la_LIBADD=${PLIBS} ${BUILD_LIBS}
 libjones_la_CFLAGS=${PFLAGS}
 
 
-EXTRA_DIST= facts.h objs.h rules.h ipython.h lena.h jones.py test.py
-include_HEADERS= facts.h objs.h rules.h ipython.h lena.h
+EXTRA_DIST= facts.h objs.h rules.h ipython.h lena.h kb.h jones.py test.py
+include_HEADERS= facts.h objs.h rules.h ipython.h lena.h kb.h
 

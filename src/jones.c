@@ -30,9 +30,10 @@
 #include "facts.h"
 #include "rules.h"
 #include "lena.h"
+#include "kb.h"
 
 /*FIXME: Get this from autools */
-#define VERSION "0.1.2"
+#define VERSION "0.2.0"
 
 static int auto_eval = 0;
 static int rule_id = 100;
@@ -41,7 +42,7 @@ int
 parse (char *cmd)
 {
   char p1[2048], p2[2048], p3[2048], p4[2048];
-
+  int  v;
 
   if (!strncasecmp (cmd, "exit", strlen ("exit")) || cmd[0] == 'q')
     {
@@ -92,9 +93,6 @@ parse (char *cmd)
 	jones_fact_add_obj (f, o1);
       else
 	jones_fact_set_robj (f, o1,0);
-      //jones_obj_add_fact (o, f);
-
-      //jones_obj_dump ();
     }
   else if (!strncasecmp (cmd, "fact", strlen ("fact")))
     {
@@ -113,10 +111,6 @@ parse (char *cmd)
       else jones_fact_set (f, FACT_UNKNOWN);
 
       jones_fact_set_iter (f, jones_rule_get_iter());
-      //jones_fact_add_obj (f, o);
-      //jones_obj_add_fact (o, f);
-
-      //jones_obj_dump ();
     }
   else if (!strncasecmp (cmd, "ask", strlen ("ask")))
     {
@@ -125,19 +119,45 @@ parse (char *cmd)
     }
   else if (!strncasecmp (cmd, "srule", strlen ("srule")))
     {
-      char f1[1024], f2[1024], rname[1024], *aux, *str;
-      RULE   *r;
+      char rname[1024], *str;
+      RULE *r;
 
       str = cmd;
       str += strlen("srule") + 1;
       str[strlen(str) - 1] = 0;
-      //sscanf (str, "%s -> %s", f1, f2);
       snprintf (rname, 1024, "srule%03d", rule_id);
-      //printf ("Registering Rule %s '%s'->'%s'\n", rname, f1, f2);
+
       rule_id++;
       r = jones_rule_new (rname, jones_rule_simple_rule);
       jones_rule_add_srule_data (r, str);
       printf ("JONES:New simple rule created with id '%s'\n", rname);
+
+    }
+  /* --------------------------------------------------*/ 
+  /* XXX: New functions to migrate to the KB interface */
+  else if (!strncasecmp (cmd, "lena", strlen ("lena")))
+    {
+      LENA_EXPR* e;
+      cmd[strlen(cmd) - 1] = 0;
+
+      if ((e = jones_kb_add_rule (cmd + strlen("lena "))))
+	{
+	  printf ("Rule %s created\n", OBJ_ID(e));
+	}
+    }
+  else if (!strncasecmp (cmd, "set", strlen ("set")))
+    {
+      sscanf (cmd + strlen ("set "), "%s %s", p1, p2);
+      if (p2[0] == 'T' || p2[0] == 't') v = FACT_TRUE;
+      else if (p2[0] == 'F' || p2[0] == 'f') v = FACT_FALSE;
+      else v = FACT_UNKNOWN;
+
+      jones_kb_add_fact (p1, v, NULL);
+    }
+
+  else if (!strncasecmp (cmd, "run", strlen ("run")))
+    {
+      jones_kb_run ();
     }
   else if (cmd[strlen(cmd) - 2] == '?') // FACT Query
     {
@@ -150,8 +170,6 @@ parse (char *cmd)
 int
 main (int argc, char *argv[])
 {
-  RULE     *r;
-
   setenv ("PYTHONPATH", ".", 1);
   printf ("JONEs Version " VERSION "\n");
   printf ("+ JONES initialisation....");
@@ -159,13 +177,13 @@ main (int argc, char *argv[])
   jones_rule_init ();
   jones_python_init ();
 
+  jones_kb_init ();
+
   printf ("DONE\n");
   if (argc > 1)
     jones_python_load_script (argv[1]);
   
-  printf ("......................................\n");
   jones_python_populate ();
-  printf ("......................................\n");
   jones_obj_dump ();
 
   /* Initial evaluation of rules */
@@ -181,35 +199,6 @@ main (int argc, char *argv[])
   int flag = 1;
   char cmd[2046];
 
-  /* Test for logic expresions */
-#if 0
-  LENA_EXPR e;
-  FACT      *f;
-  e.n = 0;
-  e.i = NULL;
-  f = jones_fact_new ("FACT1");
-  jones_fact_set (f, 1);
-  jones_lena_expr_add_item (&e, OP_VAL, f);
-
-  jones_lena_expr_add_item (&e, OP_NOT, 0);
-
-  f = jones_fact_new ("FACT2");
-  jones_fact_set (f, 1);
-  jones_lena_expr_add_item (&e, OP_VAL, f);
-
-  jones_lena_expr_add_item (&e, OP_AND, 0);
-
-  f = jones_fact_new ("FACT3");
-  jones_fact_set (f, 0);
-  jones_lena_expr_add_item (&e, OP_VAL, f);
-
-  jones_lena_expr_add_item (&e, OP_OR, 0);
-  jones_lena_run (&e);
-#endif
-  LENA_EXPR *e;  
-  e=jones_lena_parse ("FACT1 ! FACT2 & FACT3 |");
-  jones_lena_run (e);
-
 
   /* Test endss */
   while (flag)
@@ -217,7 +206,7 @@ main (int argc, char *argv[])
       memset (cmd, 0, 2046);
       printf ("\033[1;32mjones > ");
       printf ("\033[1;33m");
-      fgets (cmd, 2046, stdin);
+      if ((fgets (cmd, 2046, stdin)) == NULL) exit (1);
       printf ("\033[0m");
       flag = parse (cmd);
       if (auto_eval)

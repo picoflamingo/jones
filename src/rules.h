@@ -21,7 +21,6 @@
 #ifndef RULES_H
 #define RULES_H
 
-//#include "list.h"
 #include <nyx_list.h>
 #include "facts.h"
 #include "objs.h"
@@ -68,9 +67,10 @@ extern "C" {
   int   jones_rule_add_firing_fact (RULE *r, char *fid);
   int   jones_rule_eval (RULE *r, OBJECT *o);
   int   jones_rule_resolve_fact (OBJECT *o, char *fid);
-  int   jones_rule_full_eval ();
+  int   jones_rule_full_eval (void);
+  int   jones_rule_get_iter (void);
 
-  int   jones_rule_ask ();
+  int   jones_rule_ask (void);
 
   SIMPLE_RULE_DATA* jones_rule_add_srule_data (RULE *r, char *rule);
   int   jones_rule_simple_rule (RULE*r, OBJECT *o, FACT *f);

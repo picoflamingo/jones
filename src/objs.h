@@ -21,7 +21,6 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
-//#include "list.h"
 #include "nyx_list.h"
 #include "facts.h"
 

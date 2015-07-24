@@ -6,19 +6,12 @@ See the end of the file for license conditions.
 
 Description
 ------------
-Jones is a very basic rule engine used to learn more about basic AI concepts. Rules are defined in python
+Jones is a very basic work in progress rule engine used to learn more about basic AI concepts. 
 
 Jones uses libnyx generic functions, so you need to install it first (https://github.com/picoflamingo/nyx)
 
-Command. Line
--------------------------
-In order to let Jones find the python Knowledge base you need to export the following environmental variable
+It does not do much yet. Check doc/cmdline.txt  for some examples
 
-export PYTHONPATH=.
-
-When the application is executed without any parameter, the system will try to load the python script named "jones.py" in the current Python Path. Otherwise it will try to load the script provided in the command line. For example:
-
-./jones test
 
 *Note that the file extension is omitted. Command above loads file test.py*
 

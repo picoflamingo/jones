@@ -61,7 +61,6 @@ jones_ipy_new_fact (PyObject *self, PyObject *args)
   else
     jones_fact_set (f, FACT_UNKNOWN);
 
-  //jones_fact_add_obj (f, jones_obj_get(obj_name));
   jones_obj_add_fact (o, f);
 
   return Py_BuildValue("d", 0);
@@ -118,19 +117,20 @@ rule_wrapper (RULE *r, OBJECT *o, FACT *f)
   PyObject *pFunc, *pValue, *pArgs;
       
   pFunc = PyObject_GetAttrString(pModule, r->bi.id); 
-  //printf ("%s:: %p %p\n", __FUNCTION__, pModule, pFunc);
+
   /* pFunc is a new reference */
   if (pFunc && PyCallable_Check(pFunc))
     {
       pArgs = PyTuple_New (3);
-      // Parameters pased as opaque ids
-      pValue = PyInt_FromLong(r);
+
+      /* Parameters pased as opaque ids (long) */
+      pValue = PyInt_FromLong((long)r);
       PyTuple_SetItem(pArgs, 0, pValue);
 
-      pValue = PyInt_FromLong(o);
+      pValue = PyInt_FromLong((long)o);
       PyTuple_SetItem(pArgs, 1, pValue);
 
-      pValue = PyInt_FromLong(f);
+      pValue = PyInt_FromLong((long)f);
       PyTuple_SetItem(pArgs, 2, pValue);
 
       pValue = PyObject_CallObject(pFunc, pArgs);
@@ -141,7 +141,6 @@ rule_wrapper (RULE *r, OBJECT *o, FACT *f)
       if (pValue != 0)
 	{
 	  ret = (int)PyInt_AsLong(pValue);
-	  //printf ("Function Returned: %d\n", ret);
 	  Py_DECREF (pValue);
 
 	}
@@ -151,6 +150,7 @@ rule_wrapper (RULE *r, OBJECT *o, FACT *f)
     {
       if (PyErr_Occurred())
         PyErr_Print();
+
       fprintf(stderr, "Cannot find function \"%s\"\n", "populate_kb");
     }
   Py_XDECREF(pFunc);
@@ -193,7 +193,9 @@ jones_ipy_new_obj (PyObject *self, PyObject *args)
   printf ("Creating object: (%s)\n", obj_name);
   if ((o = jones_obj_get (obj_name)) != NULL)
     {
-      //fprintf (stderr, "Object (%s) already exists\n", obj_name);
+#ifdef DEBUG1
+      fprintf (stderr, "Object (%s) already exists\n", obj_name);
+#endif
       return Py_BuildValue("d", 0);      
     }
   jones_obj_add (jones_obj_new (obj_name));
@@ -204,17 +206,14 @@ jones_ipy_new_obj (PyObject *self, PyObject *args)
 static PyObject*
 jones_ipy_fact_get (PyObject *self, PyObject *args)
 {
-  OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v;
+  long    v;
      
   if(!PyArg_ParseTuple(args, "l", &v))
     return NULL;
 
-  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
   f = (FACT*)v;
 
-  //printf ("Accesing value of FACT: (%s)\n", OBJ_ID(f));
   v = jones_fact_get (f);
 
   return Py_BuildValue("d", v);
@@ -224,17 +223,14 @@ jones_ipy_fact_get (PyObject *self, PyObject *args)
 static PyObject*
 jones_ipy_fact_set (PyObject *self, PyObject *args)
 {
-  OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v;
+  long    r, v;
      
   if(!PyArg_ParseTuple(args, "ll", &v, &r))
     return NULL;
 
-  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
   f = (FACT*)v;
 
-  //printf ("Accesing value of FACT: (%s)\n", OBJ_ID(f));
   v = jones_fact_set1 (f, (int)r);
 
   return Py_BuildValue("d", v);
@@ -247,13 +243,13 @@ jones_ipy_fact_get_obj (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v, indx;
+  long    v, indx;
      
   if(!PyArg_ParseTuple(args, "ll", &v, &indx))
     return NULL;
 
-  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
   f = (FACT*)v;
+
   if (indx < f->olist->n )
     o = (OBJECT*) f->olist->item[indx];
   else
@@ -267,12 +263,11 @@ jones_ipy_fact_add_obj (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v, indx;
+  long    p_o, v;
      
   if(!PyArg_ParseTuple(args, "ll", &v, &p_o))
     return NULL;
 
-  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
   f = (FACT*)v;
   o = (OBJECT*) p_o;
   
@@ -286,12 +281,11 @@ jones_ipy_fact_set_robj (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v, indx;
+  long    p_o, v, indx;
      
   if(!PyArg_ParseTuple(args, "lll", &v, &p_o, &indx))
     return NULL;
 
-  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
   f = (FACT*)v;
   o = (OBJECT*) p_o;
   
@@ -306,13 +300,11 @@ jones_ipy_fact_get_robj (PyObject *self, PyObject *args)
 {
   OBJECT  *o, *o1;
   FACT    *f;
-  long    r, p_o, v, indx;
+  long    p_o, indx;
   char    *fact_name;
      
   if(!PyArg_ParseTuple(args, "lsl", &p_o, &fact_name, &indx))
     return NULL;
-
-  //printf ("Accessing fact %ld (%p)\n", v, (FACT*)v);
 
   o = (OBJECT*) p_o;
   f = (FACT*)jones_obj_get_fact (o, fact_name);
@@ -334,9 +326,8 @@ jones_ipy_fact_get_robj (PyObject *self, PyObject *args)
 static PyObject*
 jones_ipy_fact_dump (PyObject *self, PyObject *args)
 {
-  OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v;
+  long    v;
      
   if(!PyArg_ParseTuple(args, "l", &v))
     return NULL;
@@ -354,16 +345,11 @@ jones_ipy_obj_get_or_create_fact (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v;
+  long    p_o, v;
   char    *fact_name;
-  int     default_val;
      
   if(!PyArg_ParseTuple(args, "lsl", &p_o, &fact_name, &v))
     return NULL;
-  /*
-  printf ("Adding fact '%s' to object %ld (%p)\n", 
-	  fact_name, p_o, (OBJECT*)p_o);
-  */
   o = (OBJECT*) p_o;
 
   f = jones_obj_get_or_create_fact1 (o, fact_name, v);
@@ -377,16 +363,11 @@ jones_ipy_obj_update_or_create_fact (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v;
+  long    p_o, v;
   char    *fact_name;
-  int     default_val;
      
   if(!PyArg_ParseTuple(args, "lsl", &p_o, &fact_name, &v))
     return NULL;
-  /*
-  printf ("Adding fact '%s' to object %ld (%p)\n", 
-	  fact_name, p_o, (OBJECT*)p_o);
-  */
   o = (OBJECT*) p_o;
 
   f = jones_obj_get_or_create_fact1 (o, fact_name, v);
@@ -400,17 +381,11 @@ static PyObject*
 jones_ipy_obj_get_fact_val (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
-  FACT    *f;
-  long    r, p_o, v;
+  long    p_o, v;
   char    *fact_name;
-  int     default_val;
      
   if(!PyArg_ParseTuple(args, "ls", &p_o, &fact_name))
     return NULL;
-  /*
-  printf ("Adding fact '%s' to object %ld (%p)\n", 
-	  fact_name, p_o, (OBJECT*)p_o);
-  */
   o = (OBJECT*) p_o;
 
   v = jones_obj_get_fact_val (o, fact_name);
@@ -423,17 +398,11 @@ static PyObject*
 jones_ipy_obj_get_name (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
-  FACT    *f;
-  long    r, p_o, v;
-  char    *fact_name;
-  int     default_val;
+  long    p_o;
+
      
   if(!PyArg_ParseTuple(args, "l", &p_o))
     return NULL;
-  /*
-  printf ("Adding fact '%s' to object %ld (%p)\n", 
-	  fact_name, p_o, (OBJECT*)p_o);
-  */
   o = (OBJECT*) p_o;
 
   return Py_BuildValue("s",  OBJ_ID(o));
@@ -446,20 +415,18 @@ jones_ipy_imply (PyObject *self, PyObject *args)
 {
   OBJECT  *o;
   FACT    *f;
-  long    r, p_o, v;
+  long    p_o, v;
   char    *fact_name, *fact_name1, *f1, *f2;
-  int     default_val, n1, n2;
+  int     n1, n2;
      
   if(!PyArg_ParseTuple(args, "lss", &p_o, &fact_name, &fact_name1))
     return NULL;
-  /*
-  printf ("Adding fact '%s' to object %ld (%p)\n", 
-	  fact_name, p_o, (OBJECT*)p_o);
-  */
+
   o = (OBJECT*) p_o;
   n1 = n2 =1;
   f1 = fact_name;
   f2 = fact_name1;
+
   if (fact_name[0] == '!') 
     {
       n1 = 0;
@@ -470,15 +437,16 @@ jones_ipy_imply (PyObject *self, PyObject *args)
       n2 = 0;
       f2= fact_name1 + 1;
     }
-
   
   v = jones_obj_get_fact_val (o, f1);
   f = jones_obj_get_fact (o, f2);
+
   if (!f) 
     {
       f = jones_obj_get_or_create_fact1 (o, f2, !n2);
     }
   if (v == n1) jones_fact_set1 (f, n2);
+
   return Py_BuildValue("l", (long) (v == n1));
 }
 
@@ -488,21 +456,22 @@ jones_ipy_imply_ex (PyObject *self, PyObject *args)
 {
   OBJECT  *o, *o1;
   FACT    *f;
-  long    r, p_o, p_o1, v;
+  long    p_o, p_o1, v;
   char    *fact_name, *fact_name1, *f1, *f2;
-  int     default_val, n1, n2;
+  int     n1, n2;
      
   if(!PyArg_ParseTuple(args, "lsls", &p_o, &fact_name, &p_o1, &fact_name1))
     return NULL;
-  /*
+#ifdef DEBUG1
   printf ("Adding fact '%s' to object %ld (%p)\n", 
 	  fact_name, p_o, (OBJECT*)p_o);
-  */
+#endif
   o = (OBJECT*) p_o;
   o1 = (OBJECT*) p_o1;
   n1 = n2 =1;
   f1 = fact_name;
   f2 = fact_name1;
+
   if (fact_name[0] == '!') 
     {
       n1 = 0;
@@ -527,35 +496,6 @@ jones_ipy_imply_ex (PyObject *self, PyObject *args)
 }
 
 
-#if 0
-static PyObject*
-jones_ipy_imply_not (PyObject *self, PyObject *args)
-{
-  OBJECT  *o, *o1;
-  FACT    *f, *f1;
-  long    r, p_o, p_o1, v;
-  char    *fact_name, *fact_name1;
-  int     default_val;
-     
-  if(!PyArg_ParseTuple(args, "lsls", &p_o, &fact_name, &p_o1, &fact_name1))
-    return NULL;
-  /*
-  printf ("Adding fact '%s' to object %ld (%p)\n", 
-	  fact_name, p_o, (OBJECT*)p_o);
-  */
-  o = (OBJECT*) p_o;
-  o1 = (OBJECT*) p_o1;
-
-  v = jones_obj_get_fact_val (o, fact_name);
-  f = jones_obj_get_fact (o1, fact_name1);
-  if (f) 
-    if (v) jones_fact_set1 (f, 0);
-    else jones_fact_set1 (f, 1);
-  return Py_BuildValue("l", (long)v);
-}
-#endif
-
-
 static PyObject*
 jones_ipy_find_obj (PyObject *self, PyObject *args)
 {
@@ -567,7 +507,9 @@ jones_ipy_find_obj (PyObject *self, PyObject *args)
 
   if ((o = jones_obj_get (obj_name)) != NULL)
     {
-      //fprintf (stderr, "Object (%s) already exists\n", obj_name);
+#ifdef DEBUG1
+      fprintf (stderr, "Object (%s) already exists\n", obj_name);
+#endif
       return Py_BuildValue("l", (long)o);      
     }
 
@@ -582,66 +524,44 @@ static PyMethodDef kb_access[] =
   {
     {"new_obj", jones_ipy_new_obj, METH_VARARGS,
      "Adds a object to Knowledge base."},
-
     {"new_fact", jones_ipy_new_fact, METH_VARARGS,
      "Adds a fact to Knowledge base."},
-
     {"new_fact2", jones_ipy_new_fact2, METH_VARARGS,
      "Adds a Binary fact to Knowledge base."},
-
     {"new_rule", jones_ipy_new_rule, METH_VARARGS,
      "Adds a Rule to Knowledge base."},
-
     {"fact_get", jones_ipy_fact_get, METH_VARARGS,
      "Gets value of given fact."},
-
     {"fact_set", jones_ipy_fact_set, METH_VARARGS,
      "Sets value of given fact."},
-
     {"fact_get_obj", jones_ipy_fact_get_obj, METH_VARARGS,
      "Gets object associated to fact."},
-
     {"fact_add_obj", jones_ipy_fact_add_obj, METH_VARARGS,
      "Gets object associated to fact."},
-
     {"fact_set_robj", jones_ipy_fact_set_robj, METH_VARARGS,
      "Gets object associated to fact."},
-
     {"fact_get_robj", jones_ipy_fact_get_robj, METH_VARARGS,
      "Gets object associated to fact."},
-
-
     {"find_obj", jones_ipy_find_obj, METH_VARARGS,
      "Finds and object by name."},
 
-
     {"obj_get_or_create_fact", jones_ipy_obj_get_or_create_fact, METH_VARARGS,
      "Gets a fact assocaited to an object and creates it if not exists."},
-
     {"obj_get_fact_val", jones_ipy_obj_get_fact_val, METH_VARARGS,
      "Gets the value associated to the given fact on the given object."},
+    {"obj_update_or_create_fact", jones_ipy_obj_update_or_create_fact, METH_VARARGS,
+     "Gets a fact assocaited to an object and creates it if not exists."},
 
     {"imply", jones_ipy_imply, METH_VARARGS,
      "DEBUG: RUn a simple if X -> Y."},
-
     {"imply_ex", jones_ipy_imply_ex, METH_VARARGS,
      "DEBUG: RUn a simple if X then Y else ! Y."},
-
     {"obj_get_name", jones_ipy_obj_get_name, METH_VARARGS,
      "DEBUG: Returns the name of the given object."},
 
-    /*
-    {"imply_not", jones_ipy_imply_not, METH_VARARGS,
-     "DEBUG: RUn a simple if X -> !Y."},
-    */
-
     {"fact_dump", jones_ipy_fact_dump, METH_VARARGS,
      "DEBUG: Dumps the provided fact to the console."},
-
-    {"obj_update_or_create_fact", jones_ipy_obj_update_or_create_fact, METH_VARARGS,
-     "Gets a fact assocaited to an object and creates it if not exists."},
     
-
     {NULL, NULL, 0, NULL}
   };
 
@@ -653,9 +573,6 @@ jones_python_init (void)
 
   Py_InitModule("cjones", kb_access);
 
-  /* register functions to access KB */
-  //PyRun_SimpleString ("print 'Hello from Python!'");
-
   return 0;
 }
 
@@ -666,33 +583,35 @@ jones_python_load_script (char *name)
 
   pName = PyString_FromString(name);
   pModule = PyImport_Import(pName);
+
   if (PyErr_Occurred())
     {
       PyErr_Print();
       exit (1);
     }
+
   Py_DECREF(pName);
-  //printf ("+ Loading script (%p)\n", pModule);
   printf ("+ Loading script: %s\n", name);
-  //PyRun_SimpleString ("import jones");
   return 0;
 }
 
 int
 jones_python_populate (void)
 {
-  PyObject *pFunc, *pValue;
+  PyObject *pFunc;
       
   if (!pModule) return -1;
   pFunc = PyObject_GetAttrString(pModule, "populate_kb"); 
+#ifdef DEBUG1
   printf ("%s:: %p %p\n", __FUNCTION__, pModule, pFunc);
+#endif
+
   /* pFunc is a new reference */
   if (pFunc && PyCallable_Check(pFunc))
     {
-      pValue = PyObject_CallObject(pFunc, NULL);
+      PyObject_CallObject(pFunc, NULL);
       if (PyErr_Occurred())
         PyErr_Print();
-
     }
   else
     {

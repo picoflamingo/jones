@@ -29,7 +29,11 @@ typedef void *_OBJ;
 
 #define FACT_FALSE 0
 #define FACT_TRUE  1
-#define FACT_UNKNOWN 2
+#define FACT_UNKNOWN 3
+
+#define CAN_RESOLVE_AND  FACT_UNKNOWN
+#define CAN_RESOLVE_OR   FACT_UNKNOWN + 1
+
 
 typedef struct fact_t
 {
@@ -51,6 +55,7 @@ extern "C" {
   FACT* jones_fact_new (char *id);
   int   jones_fact_free (FACT *f);
 
+  char *jones_fact_str (int val);
   int   jones_fact_set (FACT *f, int val);
   int   jones_fact_set1 (FACT *f, int val);
   int   jones_fact_set_iter (FACT *f, int val);
