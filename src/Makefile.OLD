@@ -1,4 +1,0 @@
-all:jones
-
-jones: jones.c list.c objs.c facts.c rules.c
-	gcc -g -O0 -o jones jones.c list.c objs.c facts.c rules.c
