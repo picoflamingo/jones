@@ -1,0 +1,31 @@
+# Battery examnple with KB api
+#set Payload.AVAILABLE ?
+set Payload.USES_MAIN_BATTERY T
+set Payload.USES_AUX_BATTERY F
+
+# Default state 
+set MainBattery.IS_EMPTY T
+set AuxBattery.IS_EMPTY T
+#set MainBattery.IS_CHARGED F
+#set AuxBattery.IS_CHARGED F
+
+# Battery state rules
+lena MainBattery.IS_EMPTY ! MainBattery.IS_CHARGED =
+lena MainBattery.IS_CHARGED ! MainBattery.IS_EMPTY =
+
+lena AuxBattery.IS_EMPTY ! AuxBattery.IS_CHARGED =
+lena AuxBattery.IS_CHARGED ! AuxBattery.IS_EMPTY =
+
+lena Payload.USES_MAIN_BATTERY ! Payload.USES_AUX_BATTERY =
+lena Payload.USES_AUX_BATTERY ! Payload.USES_MAIN_BATTERY =
+
+# Battery swapping 
+lena MainBattery.IS_EMPTY AuxBattery.IS_CHARGED & Payload.USES_AUX_BATTERY =
+lena MainBattery.IS_CHARGED AuxBattery.IS_EMPTY & Payload.USES_MAIN_BATTERY =
+
+# Battery Priority
+lena MainBattery.IS_CHARGED Payload.USES_MAIN_BATTERY =
+
+
+# Availability
+lena MainBattery.IS_EMPTY AuxBattery.IS_EMPTY & ! Payload.AVAILABLE =
