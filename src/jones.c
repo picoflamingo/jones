@@ -38,6 +38,44 @@
 static int auto_eval = 0;
 static int rule_id = 100;
 
+#define LINE_MAX_LEN 2048
+
+int
+cmd_load (char *fname)
+{
+  int  line = 0;
+  char buffer[LINE_MAX_LEN];
+  FILE *f;
+
+  if ((f = fopen (fname, "rt")) == NULL)
+    {
+      fprintf (stderr, "Cannot open file '%s'\n", fname);
+      return -1;
+    }
+
+  while (!feof (f))
+    {
+      line++;
+      memset (buffer, 0, LINE_MAX_LEN);
+      if ((fgets (buffer, LINE_MAX_LEN, f)) == NULL)
+	{
+	  if (feof (f)) break;
+	  else
+	    fprintf (stderr, "%s: ERROR: reading file...\n", __FUNCTION__);
+	}
+
+      if (buffer[0] == '#') continue;
+      if (strlen (buffer) == 0) continue;
+
+      parse (buffer);
+
+    }
+
+  fclose (f);
+  return 0;
+}
+
+
 int
 parse (char *cmd)
 {
@@ -58,6 +96,7 @@ parse (char *cmd)
   else if (!strncasecmp (cmd, "list", strlen ("list")))
     {
       jones_obj_dump ();
+      jones_kb_dump_rules ();
     }
   else if (!strncasecmp (cmd, "obj", strlen ("obj")))
     {
@@ -116,6 +155,17 @@ parse (char *cmd)
     {
       jones_rule_ask ();
       jones_obj_dump ();
+    }
+  else if (!strncasecmp (cmd, "load", strlen ("load")))
+    {
+      char *str;
+
+      str = cmd;
+      str += strlen("load") + 1;
+      str[strlen(str) - 1] = 0;
+
+      cmd_load (str);
+
     }
   else if (!strncasecmp (cmd, "srule", strlen ("srule")))
     {

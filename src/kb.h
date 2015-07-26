@@ -37,9 +37,11 @@ extern "C" {
 
   int        jones_kb_init (void);
   FACT*      jones_kb_find_fact (char *id);
-  int        jones_kb_add_fact (char *id, int val, void *data);
+  FACT*      jones_kb_add_fact (char *id, int val, void *data);
   LENA_EXPR* jones_kb_add_rule (char *str);
   int        jones_kb_run (void);
+
+  int        jones_kb_dump_rules (void);
 #ifdef __cplusplus
 }
 #endif

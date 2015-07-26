@@ -1,4 +1,8 @@
 
+Sun Jul 26 13:27:20 CEST 2015
+	* Added load command
+	* Fixed evaluation of facts on kb_run
+
 Sat Jul 25 00:53:57 CEST 2015
 	* Jones functions moved into a library for easy integration
 	* Added lena subsystem Logic Evaluation for Naughty Agents

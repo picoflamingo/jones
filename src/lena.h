@@ -53,6 +53,7 @@ typedef struct lena_expr_t
   NYX_BASIC_ITEM    bi;
   LENA_ITEM *i;
   int        n;
+  char      *str;
 } LENA_EXPR;
 
 

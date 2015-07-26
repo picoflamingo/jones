@@ -26,6 +26,9 @@
 #include "facts.h"
 #include "lena.h"
 
+//#define DEBUG1
+
+
 static char *str_op[] = {"OOPS", "VAL", "NOT", "AND", "OR ", "SET", 
 			 "TRUE", "FALSE", "UNKNOWN", NULL};
 
@@ -103,13 +106,14 @@ jones_lena_run (LENA_EXPR *e)
 
   memset (o, 0, sizeof(LENA_OP) * n);
 #ifdef DEBUG1
-  printf ("Stack is %d items long\n", n);
+  printf ("Stack is %d items long for rule %s\n", n, OBJ_ID(e));
 #endif
   /* Check if the rule has to be fired... (FACT updated)*/
 
   for (i = 0; i < n; i++)
     {
-      if ((p[i].op == OP_VAL) && (((FACT*)p[i].val)->iter == 1)) 
+      //if ((p[i].op == OP_VAL) && (((FACT*)p[i].val)->iter == 1)) 
+      if ((p[i].op == OP_VAL) && (((FACT*)p[i].val)->iter > 0)) 
 	{
 #ifdef DEBUG1
 	  printf ("FIRE: %d Fact: %s iter:%d\n", 
@@ -149,9 +153,6 @@ jones_lena_run (LENA_EXPR *e)
       if (p[i].op == OP_VAL)
 	{
 	  o[i].val = jones_fact_get (p[i].val);
-	  /* If the fact is unknown we cannot evaluate the expression
-	   *   We could recalculate for all possible values
-	   */
 	  if (o[i].val == FACT_UNKNOWN) flag = 1;
 	}
       else if (p[i].op == OP_TRUE)
@@ -225,11 +226,16 @@ jones_lena_run (LENA_EXPR *e)
 	    if (v != o[i -2].val)
 	      {
 		jones_fact_set (p[i - 1].val, o[i - 2].val);
-		jones_fact_set_iter (p[i - 1].val, 0);
-		printf ("RULE '%s': Sets '%s' to '%s'\n",
+		jones_fact_set_iter (p[i - 1].val, 2);
+		printf ("RULE '%s': Sets '%s.%s' to '%s'\n",
 			OBJ_ID(e), 
+			OBJ_ID(((FACT*)p[i - 1].val)->obj),
 			OBJ_ID(p[i - 1].val),
 			jones_fact_str (o[i - 2].val));
+#ifdef DEBUG1
+		      jones_obj_dump ();
+		      printf ("--------------------------\n");
+#endif
 	      }
 	    flag = 0;
 	    break;
@@ -251,10 +257,11 @@ jones_lena_run (LENA_EXPR *e)
 #endif
 
   /* FIXME: THis has to be done after processing all rules...*/
+#if 0
   for (i = 0; i < n; i++)
     if ((p[i].op == OP_VAL)) 		
       jones_fact_set_iter (p[i].val, 0);
-  
+#endif  
   return o[i - 1].val;
 }
 
@@ -275,6 +282,8 @@ jones_lena_parse (char *s)
   e->bi.id = NULL;
   e->n = 0;
   e->i = NULL;
+  e->str = strdup (s);
+
   str = strdup (s);
   /* Parse */
   op = strtok (str, " ");
@@ -298,9 +307,16 @@ jones_lena_parse (char *s)
 	  /* Locate fact and add */
 	  if ((f = jones_kb_find_fact (op)) == NULL)
 	    {
+	      
+#if 0
+	      /* If fact does not exoist produce a syntax error*/
 	      fprintf (stderr, "Syntax error (%s)\n", op);
 	      free (str);
 	      return NULL;
+#else
+	      fprintf (stderr, "WARNING: Fact '%s' does not exist. It will be created\n", op);
+	      f = jones_kb_add_fact (op, FACT_UNKNOWN, NULL);
+#endif
 	    }
 	  jones_lena_expr_add_item (e, OP_VAL, f);
 	}

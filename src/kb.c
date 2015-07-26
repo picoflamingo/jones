@@ -47,7 +47,7 @@ jones_kb_init (void)
 }
 
 
-int 
+FACT*
 jones_kb_add_fact (char *id, int val, void *data)
 {
   char      *on, *fn;
@@ -69,7 +69,7 @@ jones_kb_add_fact (char *id, int val, void *data)
   /* Find object */
   if ((o = jones_obj_get (on)) == NULL)
     {
-      fprintf (stderr, "Object '%s' does not exists. Creating it\n", on);
+      fprintf (stderr, "WARNING: Object '%s' does not exists. It will be created\n", on);
       o = jones_obj_new (on);
       jones_obj_add (o);
     }
@@ -77,17 +77,18 @@ jones_kb_add_fact (char *id, int val, void *data)
   /* Find Fact inside object */
   if ((f = jones_obj_get_fact (o, fn)) == NULL)
     {
-      fprintf (stderr, "Fact '%s' does not exist for object '%s'. Creating it\n", 
+      fprintf (stderr, 
+	       "WARNING: Fact '%s' does not exist for object '%s'. It will be created\n", 
 	       fn, on);
       f = jones_obj_get_or_create_fact (o, fn, FACT_UNKNOWN);
     }
   jones_fact_set (f, val);
   jones_fact_set_iter (f, 1);
-  return 0;
+  return f;
 
  clean_up:
   free (on);
-  return -1;
+  return NULL;
 }
 
 LENA_EXPR*
@@ -129,13 +130,13 @@ jones_kb_find_fact (char *id)
   /* Find object */
   if ((o = jones_obj_get (on)) == NULL)
     {
-      fprintf (stderr, "Unknown Object '%s'\n", on);
+      //fprintf (stderr, "Unknown Object '%s'\n", on);
       goto clean_up;
     }
   /* Find Fact inside object */
   if ((f = jones_obj_get_fact (o, fn)) == NULL)
     {
-      fprintf (stderr, "Unknown Fact '%s'\n", fn);
+      //fprintf (stderr, "Unknown Fact '%s'\n", fn);
       goto clean_up;
     }
   return f;
@@ -148,12 +149,44 @@ jones_kb_find_fact (char *id)
 int
 jones_kb_run (void)
 {
-  int i, n;
-  
+  int         i, j, n;
+  LENA_EXPR   *e;
+  LENA_ITEM   *p;  
   n = _kb->lena_rules->n;
   for (i = 0; i < n; i++)
     {
       jones_lena_run (_kb->lena_rules->item[i]);
     }
+
+  /* Mark all facts as processed */
+  /* XXX: We should just keep a list of the fact that we have to re-arm*/
+  for (i = 0; i < n; i++)
+    {
+      e = (LENA_EXPR*) _kb->lena_rules->item[i];
+      p = e->i;
+      for (j = 0; j < e->n; j++)
+	{
+	  if ((p[j].op == OP_VAL)) ((FACT*)p[j].val)->iter = 0;
+	}
+
+    }
+
   return 0;
+}
+
+
+int        
+jones_kb_dump_rules (void)
+{
+  int i, n;
+  
+  n = _kb->lena_rules->n;
+  for (i = 0; i < n; i++)
+    {
+      printf ("RULE%03d: %s -> [%s]\n", i, 
+	      OBJ_ID(_kb->lena_rules->item[i]),
+	      ((LENA_EXPR*)_kb->lena_rules->item[i])->str);
+    }
+  return 0;
+
 }
