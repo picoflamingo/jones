@@ -29,19 +29,22 @@ typedef struct kb_t
 {
   NYX_BASIC_ITEM bi;
   NYX_LIST       *lena_rules;
+  NYX_LIST       *obj;
+  /* XXX: Add object list whenever object interface is updated */
 } KB;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-  int        jones_kb_init (void);
-  FACT*      jones_kb_find_fact (char *id);
-  FACT*      jones_kb_add_fact (char *id, int val, void *data);
-  LENA_EXPR* jones_kb_add_rule (char *str);
-  int        jones_kb_run (void);
+  KB*        jones_kb_init (char *id);
+  FACT*      jones_kb_find_fact (KB *kb, char *id);
+  FACT*      jones_kb_add_fact (KB *kb, char *id, int val, void *data);
+  LENA_EXPR* jones_kb_add_rule (KB *kb, char *str);
+  int        jones_kb_run (KB *kb);
 
-  int        jones_kb_dump_rules (void);
+  int        jones_kb_dump_objects (KB *kb);
+  int        jones_kb_dump_rules (KB *kb);
 #ifdef __cplusplus
 }
 #endif

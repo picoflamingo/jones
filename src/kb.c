@@ -27,34 +27,43 @@
 /* FIXME: Let's support multiple KB... for the time being just 
  *        testing the concept
  */
-static KB *_kb;
+//static KB *_kb;
 static int _rule_cnt = 1;
 
-int
-jones_kb_init (void)
+KB*
+jones_kb_init (char *id)
 {
+  KB    *_kb;
+  char  str[1024];
+
   fprintf (stderr, "JONES Knowledge base initialising...\n");
-  jones_obj_init (); /* XXX: FIXME allow multiple object list...
-		      *      will have to go into KB structure */
+  if ((_kb = malloc (sizeof(struct kb_t))) == NULL)
+    {
+      fprintf (stderr, "Cannot create a new knowledge base '%s' \n", id);
+      return NULL;
 
+    }
+  _kb->bi.id = strdup (id);
+
+  snprintf (str,1024, "%s_objs", id);
+  _kb->obj = nyx_list_new (str, 8, sizeof (OBJECT));
   /* Create Lena expresions list -> Rules */
-  /* XXX: Memory checks below */
-  _kb = malloc (sizeof(struct kb_t));
-  _kb->bi.id = strdup ("baseKB");
-  _kb->lena_rules = nyx_list_new ("baseKB_lena_rules", 8, sizeof(LENA_EXPR));
+  snprintf (str,1024, "%s_rules", id);
+  _kb->lena_rules = nyx_list_new (str, 8, sizeof(LENA_EXPR));
 
-  return 0;
+  return _kb;
 }
 
 
 FACT*
-jones_kb_add_fact (char *id, int val, void *data)
+jones_kb_add_fact (KB *kb, char *id, int val, void *data)
 {
   char      *on, *fn;
   OBJECT    *o;
   FACT      *f;
 
-  if (!id) return -1;
+  if (!kb) return NULL;
+  if (!id) return NULL;
 
   /* Parse id to retrieve name and fact name */
   on = strdup(id);
@@ -66,12 +75,15 @@ jones_kb_add_fact (char *id, int val, void *data)
   *fn = 0;
   fn++;
 
+  /* XXX: Object API to be updated */
   /* Find object */
-  if ((o = jones_obj_get (on)) == NULL)
+  //if ((o = jones_obj_get (on)) == NULL)
+  if ((o = (OBJECT*) nyx_list_find_item (kb->obj, on)) == NULL)
     {
       fprintf (stderr, "WARNING: Object '%s' does not exists. It will be created\n", on);
       o = jones_obj_new (on);
-      jones_obj_add (o);
+      //jones_obj_add (o);
+      nyx_list_add_item (kb->obj, o);
     }
 
   /* Find Fact inside object */
@@ -84,6 +96,7 @@ jones_kb_add_fact (char *id, int val, void *data)
     }
   jones_fact_set (f, val);
   jones_fact_set_iter (f, 1);
+
   return f;
 
  clean_up:
@@ -92,30 +105,34 @@ jones_kb_add_fact (char *id, int val, void *data)
 }
 
 LENA_EXPR*
-jones_kb_add_rule (char *str)
+jones_kb_add_rule (KB *kb, char *str)
 {
   char id[1024];
   LENA_EXPR *e;
   
-  if ((e = jones_lena_parse (str)) == NULL)
+  if (!kb) return NULL;
+  if (!str) return NULL;
+
+  if ((e = jones_lena_parse (kb, str)) == NULL)
     return NULL;
 
-  snprintf (id, 1024, "%s_%03d", OBJ_ID(_kb), _rule_cnt);
+  snprintf (id, 1024, "%s_%03d", OBJ_ID(kb), _rule_cnt);
   _rule_cnt++;
 
   jones_lena_set_id (e, id);
-  nyx_list_add_item (_kb->lena_rules, e);
+  nyx_list_add_item (kb->lena_rules, e);
 
   return e;
 }
 
 FACT* 
-jones_kb_find_fact (char *id)
+jones_kb_find_fact (KB *kb, char *id)
 {
   char      *on, *fn;
   OBJECT    *o;
   FACT      *f;
 
+  if (!kb) return NULL;
   if (!id) return NULL;
 
   /* Parse id to retrieve name and fact name */
@@ -128,7 +145,8 @@ jones_kb_find_fact (char *id)
   *fn = 0;
   fn++;
   /* Find object */
-  if ((o = jones_obj_get (on)) == NULL)
+  //if ((o = jones_obj_get (on)) == NULL)
+  if ((o = (OBJECT*) nyx_list_find_item (kb->obj, on)) == NULL)
     {
       //fprintf (stderr, "Unknown Object '%s'\n", on);
       goto clean_up;
@@ -147,22 +165,25 @@ jones_kb_find_fact (char *id)
 }
 
 int
-jones_kb_run (void)
+jones_kb_run (KB *kb)
 {
   int         i, j, n;
   LENA_EXPR   *e;
   LENA_ITEM   *p;  
-  n = _kb->lena_rules->n;
+
+  if (!kb) return -1;
+
+  n = kb->lena_rules->n;
   for (i = 0; i < n; i++)
     {
-      jones_lena_run (_kb->lena_rules->item[i]);
+      jones_lena_run (kb->lena_rules->item[i]);
     }
 
   /* Mark all facts as processed */
   /* XXX: We should just keep a list of the fact that we have to re-arm*/
   for (i = 0; i < n; i++)
     {
-      e = (LENA_EXPR*) _kb->lena_rules->item[i];
+      e = (LENA_EXPR*) kb->lena_rules->item[i];
       p = e->i;
       for (j = 0; j < e->n; j++)
 	{
@@ -176,17 +197,55 @@ jones_kb_run (void)
 
 
 int        
-jones_kb_dump_rules (void)
+jones_kb_dump_rules (KB *kb)
 {
   int i, n;
-  
-  n = _kb->lena_rules->n;
+
+  if (!kb) return -1;
+
+  n = kb->lena_rules->n;
+  printf ("KB(%s): %d rules\n", OBJ_ID(kb), n);
+  printf ("-------------------------------------------------\n");
   for (i = 0; i < n; i++)
     {
       printf ("RULE%03d: %s -> [%s]\n", i, 
-	      OBJ_ID(_kb->lena_rules->item[i]),
-	      ((LENA_EXPR*)_kb->lena_rules->item[i])->str);
+	      OBJ_ID(kb->lena_rules->item[i]),
+	      ((LENA_EXPR*)kb->lena_rules->item[i])->str);
     }
   return 0;
 
+}
+
+int        
+jones_kb_dump_objects (KB *kb)
+{
+  OBJECT  *o;
+  int     i, j, n, n1, cnt;
+
+  if (!kb) return -1;
+
+  cnt = 0;
+  n1 = kb->obj->n;
+  printf ("KB(%s): %d objects\n", OBJ_ID(kb), n1);
+  printf ("-------------------------------------------------\n");
+  for (i = 0; i < n1; i++)
+    {
+      o = (OBJECT*) kb->obj->item[i];
+      n = o->facts->n;
+      cnt += n;
+      if (n == 0) continue;
+      printf ("OBJ%03d: (%s) [%d FACTS]\n", i, OBJ_ID(o), n);
+
+
+      for (j = 0; j < n; j++)
+	{
+	  jones_fact_dump (o->facts->item[j]);
+	}
+      printf ("\n");
+    }
+
+  printf ("KB(%s): %d facts\n", OBJ_ID(kb), cnt);
+  printf ("-------------------------------------------------\n");
+
+  return 0;
 }

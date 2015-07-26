@@ -61,6 +61,9 @@ AC_SUBST(PLIBS)
 
 AC_SUBST(MY_TOP_DIR)
 
+VERSION_NUM="VERSION_NUMBER"
+AC_SUBST(VERSION_NUM)
+
 dnl Uncomment for special management of prefix variable
 dnl 
 if test "$prefix" = "NONE"; then
@@ -82,6 +85,7 @@ AC_SUBST(JONES_DATADIR)
 # Output Files
 AC_CONFIG_FILES([Makefile \
 		doc/Makefile \
+		src/jones_const.h \
 		src/Makefile])
 AC_OUTPUT
 
@@ -95,3 +99,4 @@ AC_MSG_RESULT(--- BUILD_FLAGS : ${BUILD_FLAGS})
 AC_MSG_RESULT(--- BUILD_LIBS  : ${BUILD_LIBS})
 AC_MSG_RESULT(--- PFLAGS      : ${PFLAGS})
 AC_MSG_RESULT(--- PLIBS       : ${PLIBS})
+AC_MSG_RESULT(--- VERSION     : ${VERSION_NUM})

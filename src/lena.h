@@ -21,7 +21,10 @@
 #ifndef LOGIC_ENG_H
 #define LOGIC_ENG_H
 
+
 #include "nyx_list.h"
+
+typedef struct kb_t KB;
 
 /* Logical Operators */
 #define OP_VAL   1
@@ -61,7 +64,7 @@ typedef struct lena_expr_t
 extern "C" {
 #endif
 
-  LENA_EXPR* jones_lena_parse (char *str);
+  LENA_EXPR* jones_lena_parse (KB *kb, char *str);
   int        jones_lena_free (LENA_EXPR *e);
   int        jones_lena_set_id (LENA_EXPR *e, char *n);
   int        jones_lena_run (LENA_EXPR *e);

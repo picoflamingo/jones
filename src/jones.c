@@ -26,19 +26,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "objs.h"
-#include "facts.h"
-#include "rules.h"
-#include "lena.h"
+#include "jones_const.h"
+
+//#include "objs.h"
 #include "kb.h"
 
-/*FIXME: Get this from autools */
-#define VERSION "0.2.0"
-
 static int auto_eval = 0;
-static int rule_id = 100;
+static KB *_kb = NULL;
 
 #define LINE_MAX_LEN 2048
+
+/* Local Prototypes */
+int parse (char *cmd);
+int cmd_load (char *fname);
 
 int
 cmd_load (char *fname)
@@ -79,7 +79,7 @@ cmd_load (char *fname)
 int
 parse (char *cmd)
 {
-  char p1[2048], p2[2048], p3[2048], p4[2048];
+  char p1[2048], p2[2048];
   int  v;
 
   if (!strncasecmp (cmd, "exit", strlen ("exit")) || cmd[0] == 'q')
@@ -95,66 +95,8 @@ parse (char *cmd)
 
   else if (!strncasecmp (cmd, "list", strlen ("list")))
     {
-      jones_obj_dump ();
-      jones_kb_dump_rules ();
-    }
-  else if (!strncasecmp (cmd, "obj", strlen ("obj")))
-    {
-      sscanf (cmd + strlen ("obj "), "%s", p1);
-      jones_obj_add (jones_obj_new (p1));
-      printf ("JONES: Object '%s' created\n", p1);
-    }
-  else if (!strncasecmp (cmd, "fact2", strlen ("fact2")))
-    {
-      sscanf (cmd + strlen ("fact2 "), "%s %s %s %s", p1, p2, p4, p3);
-      printf ("JONES:Adding fact (%s) to object (%s) with value '%s'\n", 
-	      p1, p2, p3);
-      OBJECT *o = jones_obj_get (p1);
-      if (!o)
-	{
-	  fprintf (stderr, "Object %s does not exit\n", p1);
-	  return 1;
-	}
-      OBJECT *o1 = jones_obj_get (p4);
-      if (!o)
-	{
-	  fprintf (stderr, "Object %s does not exit\n", p4);
-	  return 1;
-	}
-      FACT *f = jones_obj_get_or_create_fact (o, p2, FACT_UNKNOWN);
-
-      if (p3[0] == 'T' || p3[0] == 't') jones_fact_set (f, FACT_TRUE);
-      else if (p3[0] == 'F' || p3[0] == 'f') jones_fact_set (f, FACT_FALSE);
-      else jones_fact_set (f, FACT_UNKNOWN);
-
-      jones_fact_set_iter (f, jones_rule_get_iter());
-      if (f->olist->n == 0)
-	jones_fact_add_obj (f, o1);
-      else
-	jones_fact_set_robj (f, o1,0);
-    }
-  else if (!strncasecmp (cmd, "fact", strlen ("fact")))
-    {
-      sscanf (cmd + strlen ("fact "), "%s %s %s", p1, p2, p3);
-      printf ("JONES:Adding/Setting  fact (%s) to object (%s) with value '%s'\n", p1, p2, p3);
-      OBJECT *o = jones_obj_get (p1);
-      if (!o)
-	{
-	  fprintf (stderr, "Object %s does not exit\n", p1);
-	  return 1;
-	}
-      FACT *f = jones_obj_get_or_create_fact (o, p2, FACT_UNKNOWN);
-
-      if (p3[0] == 'T' || p3[0] == 't') jones_fact_set (f, FACT_TRUE);
-      else if (p3[0] == 'F' || p3[0] == 'f') jones_fact_set (f, FACT_FALSE);
-      else jones_fact_set (f, FACT_UNKNOWN);
-
-      jones_fact_set_iter (f, jones_rule_get_iter());
-    }
-  else if (!strncasecmp (cmd, "ask", strlen ("ask")))
-    {
-      jones_rule_ask ();
-      jones_obj_dump ();
+      jones_kb_dump_objects (_kb);
+      jones_kb_dump_rules (_kb);
     }
   else if (!strncasecmp (cmd, "load", strlen ("load")))
     {
@@ -167,22 +109,6 @@ parse (char *cmd)
       cmd_load (str);
 
     }
-  else if (!strncasecmp (cmd, "srule", strlen ("srule")))
-    {
-      char rname[1024], *str;
-      RULE *r;
-
-      str = cmd;
-      str += strlen("srule") + 1;
-      str[strlen(str) - 1] = 0;
-      snprintf (rname, 1024, "srule%03d", rule_id);
-
-      rule_id++;
-      r = jones_rule_new (rname, jones_rule_simple_rule);
-      jones_rule_add_srule_data (r, str);
-      printf ("JONES:New simple rule created with id '%s'\n", rname);
-
-    }
   /* --------------------------------------------------*/ 
   /* XXX: New functions to migrate to the KB interface */
   else if (!strncasecmp (cmd, "lena", strlen ("lena")))
@@ -190,7 +116,7 @@ parse (char *cmd)
       LENA_EXPR* e;
       cmd[strlen(cmd) - 1] = 0;
 
-      if ((e = jones_kb_add_rule (cmd + strlen("lena "))))
+      if ((e = jones_kb_add_rule (_kb, cmd + strlen("lena "))))
 	{
 	  printf ("Rule %s created\n", OBJ_ID(e));
 	}
@@ -202,16 +128,12 @@ parse (char *cmd)
       else if (p2[0] == 'F' || p2[0] == 'f') v = FACT_FALSE;
       else v = FACT_UNKNOWN;
 
-      jones_kb_add_fact (p1, v, NULL);
+      jones_kb_add_fact (_kb, p1, v, NULL);
     }
 
   else if (!strncasecmp (cmd, "run", strlen ("run")))
     {
-      jones_kb_run ();
-    }
-  else if (cmd[strlen(cmd) - 2] == '?') // FACT Query
-    {
-      jones_obj_fact_query (cmd);
+      jones_kb_run (_kb);
     }
 
   return 1;
@@ -220,34 +142,14 @@ parse (char *cmd)
 int
 main (int argc, char *argv[])
 {
-  setenv ("PYTHONPATH", ".", 1);
-  printf ("JONEs Version " VERSION "\n");
-  printf ("+ JONES initialisation....");
-  jones_obj_init ();
-  jones_rule_init ();
-  jones_python_init ();
-
-  jones_kb_init ();
-
-  printf ("DONE\n");
-  if (argc > 1)
-    jones_python_load_script (argv[1]);
-  
-  jones_python_populate ();
-  jones_obj_dump ();
-
-  /* Initial evaluation of rules */
-  int n, n1;
-  n1 = 0;
-  do 
-    {
-      n = jones_rule_full_eval ();
-      if (n == n1) break;
-      n1 = n;
-    } while (1);
-
-  int flag = 1;
+  int  flag = 1;
   char cmd[2046];
+
+  printf ("JONEs Version " JONES_VERSION "\n");
+
+  _kb = jones_kb_init ("JONES");
+
+
 
 
   /* Test endss */
@@ -260,7 +162,10 @@ main (int argc, char *argv[])
       printf ("\033[0m");
       flag = parse (cmd);
       if (auto_eval)
-	n = jones_rule_full_eval ();
+	{
+	  jones_kb_run (_kb);
+	  jones_kb_dump_objects (_kb);
+	}
     }
 
   return 0;

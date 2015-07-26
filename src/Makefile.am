@@ -20,12 +20,16 @@
 
 AM_CFLAGS=${PFLAGS}
 
-bin_PROGRAMS=jones
+bin_PROGRAMS=jones old_jones
 
 
 jones_SOURCES=jones.c 
 jones_LDADD=${BUILD_LIBS} ./libjones.la
 jones_la_CFLAGS=${PFLAGS}
+
+old_jones_SOURCES=old_jones.c 
+old_jones_LDADD=${BUILD_LIBS} ./libjones.la
+old_jones_la_CFLAGS=${PFLAGS}
 
 lib_LTLIBRARIES = libjones.la
 libjones_la_SOURCES = facts.c objs.c rules.c lena.c kb.c ipython.c 

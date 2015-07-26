@@ -266,7 +266,7 @@ jones_lena_run (LENA_EXPR *e)
 }
 
 LENA_EXPR* 
-jones_lena_parse (char *s)
+jones_lena_parse (KB *kb, char *s)
 {
   LENA_EXPR *e;
   FACT      *f;
@@ -305,7 +305,7 @@ jones_lena_parse (char *s)
       else /* In any othercase this is a fact */
 	{
 	  /* Locate fact and add */
-	  if ((f = jones_kb_find_fact (op)) == NULL)
+	  if ((f = jones_kb_find_fact (kb, op)) == NULL)
 	    {
 	      
 #if 0
@@ -315,7 +315,7 @@ jones_lena_parse (char *s)
 	      return NULL;
 #else
 	      fprintf (stderr, "WARNING: Fact '%s' does not exist. It will be created\n", op);
-	      f = jones_kb_add_fact (op, FACT_UNKNOWN, NULL);
+	      f = jones_kb_add_fact (kb, op, FACT_UNKNOWN, NULL);
 #endif
 	    }
 	  jones_lena_expr_add_item (e, OP_VAL, f);

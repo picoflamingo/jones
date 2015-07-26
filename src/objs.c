@@ -281,3 +281,5 @@ jones_obj_get_fact_val (OBJECT *o, char *id)
   else
     return jones_fact_get (f);
 }
+
+
