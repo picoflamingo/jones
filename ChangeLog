@@ -1,4 +1,7 @@
 
+Tue Jul 28 07:33:46 CEST 2015
+	* Updated lena_run to support multiple assignments 
+
 Sun Jul 26 13:27:20 CEST 2015
 	* Added load command
 	* Fixed evaluation of facts on kb_run

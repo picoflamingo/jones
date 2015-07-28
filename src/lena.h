@@ -67,7 +67,7 @@ extern "C" {
   LENA_EXPR* jones_lena_parse (KB *kb, char *str);
   int        jones_lena_free (LENA_EXPR *e);
   int        jones_lena_set_id (LENA_EXPR *e, char *n);
-  int        jones_lena_run (LENA_EXPR *e);
+  int        jones_lena_run (LENA_EXPR *e, int* r);
 
   int        jones_lena_expr_add_item (LENA_EXPR *e, int op, void*val);
 

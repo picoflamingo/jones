@@ -16,12 +16,16 @@ lena MainBattery.IS_CHARGED ! MainBattery.IS_EMPTY =
 lena AuxBattery.IS_EMPTY ! AuxBattery.IS_CHARGED =
 lena AuxBattery.IS_CHARGED ! AuxBattery.IS_EMPTY =
 
-lena Payload.USES_MAIN_BATTERY ! Payload.USES_AUX_BATTERY =
-lena Payload.USES_AUX_BATTERY ! Payload.USES_MAIN_BATTERY =
+#lena Payload.USES_MAIN_BATTERY ! Payload.USES_AUX_BATTERY =
+#lena Payload.USES_AUX_BATTERY ! Payload.USES_MAIN_BATTERY =
+
+lena Payload.USES_MAIN_BATTERY ! AuxBattery.IS_CHARGED & Payload.USES_AUX_BATTERY =
+lena Payload.USES_AUX_BATTERY ! MainBattery.IS_CHARGED & Payload.USES_MAIN_BATTERY =
+
 
 # Battery swapping 
 lena MainBattery.IS_EMPTY AuxBattery.IS_CHARGED & Payload.USES_AUX_BATTERY =
-lena MainBattery.IS_CHARGED AuxBattery.IS_EMPTY & Payload.USES_MAIN_BATTERY =
+#lena MainBattery.IS_CHARGED AuxBattery.IS_EMPTY & Payload.USES_MAIN_BATTERY =
 
 # Battery Priority
 lena MainBattery.IS_CHARGED Payload.USES_MAIN_BATTERY =

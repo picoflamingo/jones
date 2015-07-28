@@ -167,18 +167,36 @@ jones_kb_find_fact (KB *kb, char *id)
 int
 jones_kb_run (KB *kb)
 {
-  int         i, j, n;
+  int         i, j, n, fired, r;
   LENA_EXPR   *e;
   LENA_ITEM   *p;  
 
   if (!kb) return -1;
 
+
+  fired = 0;
   n = kb->lena_rules->n;
+
+  /* Force firing all rules */
+#if 0
   for (i = 0; i < n; i++)
     {
-      jones_lena_run (kb->lena_rules->item[i]);
+      e = (LENA_EXPR*) kb->lena_rules->item[i];
+      p = e->i;
+      for (j = 0; j < e->n; j++)
+	{
+	  if ((p[j].op == OP_VAL)) ((FACT*)p[j].val)->iter = 1;
+	}
+
     }
 
+#endif
+  for (i = 0; i < n; i++)
+    {
+      fired += jones_lena_run (kb->lena_rules->item[i], NULL);
+    }
+
+  printf ("KB(%s):%d rules fired out of %d\n", OBJ_ID(kb), fired, n);
   /* Mark all facts as processed */
   /* XXX: We should just keep a list of the fact that we have to re-arm*/
   for (i = 0; i < n; i++)

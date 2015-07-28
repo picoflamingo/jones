@@ -91,10 +91,11 @@ jones_lena_expr_add_item (LENA_EXPR *e, int op, void *val)
 
 }
 
+
 int       
-jones_lena_run (LENA_EXPR *e)
+jones_lena_run (LENA_EXPR *e, int *result)
 {
-  int       i, n, v, flag;
+  int       i, n, v, flag, r;
   LENA_ITEM *p;
   LENA_OP   o[1024];
 
@@ -104,6 +105,7 @@ jones_lena_run (LENA_EXPR *e)
   n = e->n;
   p = e->i;
 
+  r = 0;
   memset (o, 0, sizeof(LENA_OP) * n);
 #ifdef DEBUG1
   printf ("Stack is %d items long for rule %s\n", n, OBJ_ID(e));
@@ -115,8 +117,8 @@ jones_lena_run (LENA_EXPR *e)
       //if ((p[i].op == OP_VAL) && (((FACT*)p[i].val)->iter == 1)) 
       if ((p[i].op == OP_VAL) && (((FACT*)p[i].val)->iter > 0)) 
 	{
-#ifdef DEBUG1
-	  printf ("FIRE: %d Fact: %s iter:%d\n", 
+#ifdef DEBUG2
+	  printf ("FIRE1: %d Fact: %s iter:%d\n", 
 		  i, 
 		  OBJ_ID(((FACT*)p[i].val)),
 		  ((FACT*)p[i].val)->iter
@@ -124,10 +126,11 @@ jones_lena_run (LENA_EXPR *e)
 #endif
 	  break;
 	}
+#if 1
       if ((i < (n - 1) && (p[i + 1].op == OP_SET))) 
 	{
-#ifdef DEBUG1
-	  printf ("FIRE: OP_SET %d Fact: %s iter:%d\n", 
+#ifdef DEBUG2
+	  printf ("FIRE2: OP_SET %d Fact: %s iter:%d\n", 
 		  i, 
 		  OBJ_ID(((FACT*)p[i].val)),
 		  ((FACT*)p[i].val)->iter
@@ -135,11 +138,14 @@ jones_lena_run (LENA_EXPR *e)
 #endif
 	  break;
 	}
+#endif
     }
 
+
   if (i >= n - 2)
+
     {
-#ifdef DEBUG1
+#ifdef DEBUG2
       fprintf (stderr, "NOTE: RULE %s nothing to do\n", OBJ_ID(e));
 #endif
       return 0;
@@ -194,7 +200,11 @@ jones_lena_run (LENA_EXPR *e)
 		    break;
 		  }
 		else
-		  return FACT_UNKNOWN; // TRUE & ?? = ??
+		  {
+		    // TRUE & ?? = ??
+		    if(result) *result = FACT_UNKNOWN;
+		    return 1; 
+		  }
 	      }
 	    o[i].val = o[i - 1].val && o[i - 2].val;
 	    flag = 0;
@@ -212,7 +222,10 @@ jones_lena_run (LENA_EXPR *e)
 		    break;
 		  }
 		else
-		  return FACT_UNKNOWN;
+		  {
+		    if (result) *result = FACT_UNKNOWN;
+		    return 1;
+		  }
 	      }
 
 	    o[i].val = o[i - 1].val || o[i - 2].val;
@@ -223,8 +236,17 @@ jones_lena_run (LENA_EXPR *e)
 	  {
 	    o[i].op = OP_VAL;
 	    v = jones_fact_get(p[i - 1] .val);
+	    o[i].val = o[i -2].val;
 	    if (v != o[i -2].val)
 	      {
+		if (((FACT*)p[i - 1].val)->iter == 2)
+		  {
+		    printf ("RULE '%s': [CONTRADICTION] Sets previously set value '%s.%s' to '%s'\n",
+			    OBJ_ID(e), 
+			    OBJ_ID(((FACT*)p[i - 1].val)->obj),
+			    OBJ_ID(p[i - 1].val),
+			    jones_fact_str (o[i - 2].val));
+		  }
 		jones_fact_set (p[i - 1].val, o[i - 2].val);
 		jones_fact_set_iter (p[i - 1].val, 2);
 		printf ("RULE '%s': Sets '%s.%s' to '%s'\n",
@@ -232,10 +254,9 @@ jones_lena_run (LENA_EXPR *e)
 			OBJ_ID(((FACT*)p[i - 1].val)->obj),
 			OBJ_ID(p[i - 1].val),
 			jones_fact_str (o[i - 2].val));
-#ifdef DEBUG1
-		      jones_obj_dump ();
-		      printf ("--------------------------\n");
-#endif
+		/* We signal that something has been changed */
+		r = 1;
+
 	      }
 	    flag = 0;
 	    break;
@@ -256,13 +277,8 @@ jones_lena_run (LENA_EXPR *e)
   printf ( "Result %d\n", o[i - 1].val);
 #endif
 
-  /* FIXME: THis has to be done after processing all rules...*/
-#if 0
-  for (i = 0; i < n; i++)
-    if ((p[i].op == OP_VAL)) 		
-      jones_fact_set_iter (p[i].val, 0);
-#endif  
-  return o[i - 1].val;
+  if (result) *result = o[i - 1].val;
+  return r;
 }
 
 LENA_EXPR* 
