@@ -77,7 +77,6 @@ jones_kb_add_fact (KB *kb, char *id, int val, void *data)
 
   /* XXX: Object API to be updated */
   /* Find object */
-  //if ((o = jones_obj_get (on)) == NULL)
   if ((o = (OBJECT*) nyx_list_find_item (kb->obj, on)) == NULL)
     {
       fprintf (stderr, "WARNING: Object '%s' does not exists. It will be created\n", on);
@@ -145,7 +144,6 @@ jones_kb_find_fact (KB *kb, char *id)
   *fn = 0;
   fn++;
   /* Find object */
-  //if ((o = jones_obj_get (on)) == NULL)
   if ((o = (OBJECT*) nyx_list_find_item (kb->obj, on)) == NULL)
     {
       //fprintf (stderr, "Unknown Object '%s'\n", on);
@@ -267,3 +265,59 @@ jones_kb_dump_objects (KB *kb)
 
   return 0;
 }
+
+
+int        
+jones_kb_fact_query (KB *kb, char *query)
+{
+  OBJECT  *o;
+  FACT    *f;
+  int     i, j, n, n1, cnt;
+  char    *copy, *fact;
+  int     skip_value = 0;
+
+  if (!kb) return -1;
+
+  if (!query) return -1;
+
+  copy = strdup (query);
+  fact = copy;
+  fact[strlen(fact) - 2] = 0;
+  if (fact[0] == '!')
+    {
+      skip_value = 1;
+      fact++;
+    }
+  cnt = 0;
+
+  cnt = 0;
+  n1 = kb->obj->n;
+  printf ("KB(%s): Query '%s' on %d objects\n", OBJ_ID(kb), fact, n1);
+  printf ("-------------------------------------------------\n");
+  for (i = 0; i < n1; i++)
+    {
+      o = (OBJECT*) kb->obj->item[i];
+      n = o->facts->n;
+      if (n == 0) continue;
+      for (j = 0; j < n; j++)
+	{
+	  f = (FACT*) o->facts->item[j];
+	  if (f->value == skip_value) continue;
+
+	  if (!strcmp (OBJ_ID(f), fact))
+	    {
+	      printf ("= Object '%s' -> ", OBJ_ID(o));
+	      jones_fact_dump (f);
+	      cnt++;
+	    }
+
+	}
+
+    }
+
+  printf ("KB(%s): %d results\n", OBJ_ID(kb), cnt);
+  printf ("-------------------------------------------------\n");
+
+  return 0;
+}
+

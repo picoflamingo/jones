@@ -20,71 +20,6 @@ Toggles auto firing of rules. When active rules are fired after every command en
 * list
 Produces a dump of the current objects and facts in the working space
 
-* obj OBJ
-Creates a new object with the provided name
-
-Example:
-jones> obj Person
-
-* fact OBJ FACT_NAME VAL
-Creates a new fact with name FACT_NAME and value VAL. The fact is associated to the provided object
-
-VAL: True, T, False, F
-
-Example
-jones> obj Person
-jones> fact Person IS_MAMAL T
-
-* fact2 OBJ FACT_NAME ROBJ VAL
-Creates a new fact and associates ROBJ to the right side of the conditional.
-
-Example:
-jones> obj Person
-jones> obj Legs
-jones> fact2 Person HAS Legs T
-
-* Simple query -> [!]FACT_NAME?
-Queries the knowledge base for a given fact or its negation (starting the query with the character !)
-
-Example:
-jones> obj Person1
-jones> obj Person2
-jones> fact Person1 IS_HUMAN T
-jones> fact Person2 IS_MUTANT T
-jones> fact Person2 IS_HUMAN F
-jones> IS_HUMAN?
-Querying FACT 'IS_HUMAN'
-= Object 'Person1' -> FACT : (Person1) IS_HUMAN  -> TRUE (iter:2)
-jones> !IS_HUMAN?
-Querying FACT 'IS_HUMAN'
-= Object 'Person2' -> FACT : (Person2) IS_HUMAN  -> FALSE (iter:2)
-
-* srule [!]FACT_NAME -> [!]FACT_NAME
-Creates a single rule activating the right side fact whenever the left side fact is true
-
-Example:
-
-jones > auto 
-jones > obj Person
-jones > fact Person IS_HUMAN T
-jones > fact Person IS_MUTANT F
-jones > IS_HUMAN?
-Querying FACT 'IS_HUMAN'
-= Object 'Person' -> FACT : (Person) IS_HUMAN  -> TRUE (iter:2)
-jones > srule IS_HUMAN -> !IS_MUTANT
-jones > srule IS_MUTANT -> !IS_HUMAN
-jones> fact Person IS_MUTANT T
-jones > IS_HUMAN?
-Querying FACT 'IS_HUMAN'
-jones > IS_MUTANT?
-Querying FACT 'IS_MUTANT'
-= Object 'Person' -> FACT : (Person) IS_MUTANT  -> TRUE (iter:19)
-jones > fact Person IS_HUMAN T
-jones > IS_HUMAN?
-Querying FACT 'IS_HUMAN'
-= Object 'Person' -> FACT : (Person) IS_HUMAN  -> TRUE (iter:22)
-jones > IS_MUTANT?
-Querying FACT 'IS_MUTANT'
 
 Knowledge Base simplified commands
 --------------------------------------
@@ -101,6 +36,7 @@ Creates a rule using Reverse Polish Notation. Lena rules are not yet fully integ
 
 jones > lena Jones.IS_COOL ! Jones.IS_BORING =
 jones > lena Jones.IS_BORING ! Jones.IS_COOL =
+jones>  lena Jones.IS_COOL (Jones is so cool) say
 jones > run
 
 In-order representations of the rules above are:

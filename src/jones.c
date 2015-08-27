@@ -135,6 +135,12 @@ parse (char *cmd)
     {
       jones_kb_run (_kb);
     }
+  
+  else if (cmd[strlen(cmd) - 2] == '?') // FACT Query
+    {
+      jones_kb_fact_query (_kb, cmd);
+    }
+  
 
   return 1;
 }

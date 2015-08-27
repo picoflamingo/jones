@@ -1,0 +1,9 @@
+# Simple Jones commands script
+set Jones.IS_COOL T
+set Jones.IS_BORING ?
+lena Jones.IS_COOL ! Jones.IS_BORING =
+lena Jones.IS_BORING ! Jones.IS_COOL =
+lena Jones.IS_COOL (Jones is really cool stuff) say
+lena Jones.IS_BORING (Jones is so boring...) say
+run
+

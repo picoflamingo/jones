@@ -766,9 +766,6 @@ uninstall-am:
 	ps ps-am tags tags-recursive uninstall uninstall-am
 
 
-#cfgdir=@PF_DATADIR@
-#cfg_DATA=shader_list.txt font_list.txt
-
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

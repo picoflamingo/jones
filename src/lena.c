@@ -30,7 +30,8 @@
 
 
 static char *str_op[] = {"OOPS", "VAL", "NOT", "AND", "OR ", "SET", 
-			 "TRUE", "FALSE", "UNKNOWN", NULL};
+			 "TRUE", "FALSE", "UNKNOWN", 
+			 "STR", "MSG", "VAR", NULL};
 
 int
 _dump_stack (LENA_OP *o, int n)
@@ -232,6 +233,16 @@ jones_lena_run (LENA_EXPR *e, int *result)
 	    flag = 0;
 	    break;
 	  }
+	case OP_MSG:
+	  {
+	    if (o[i - 2].val == FACT_TRUE)
+	      printf ("MSG:%s\n", (char*) p[i - 1].val);
+	    o[i].op = OP_VAL;
+	    o[i].val = o[i - 2].val;
+	    /* Rule fired */
+	    r = 1;
+	    break;
+	  }
 	case OP_SET:
 	  {
 	    o[i].op = OP_VAL;
@@ -241,7 +252,8 @@ jones_lena_run (LENA_EXPR *e, int *result)
 	      {
 		if (((FACT*)p[i - 1].val)->iter == 2)
 		  {
-		    printf ("RULE '%s': [CONTRADICTION] Sets previously set value '%s.%s' to '%s'\n",
+		    printf ("RULE '%s': [CONTRADICTION] Sets previously set "
+			    "value '%s.%s' to '%s'\n",
 			    OBJ_ID(e), 
 			    OBJ_ID(((FACT*)p[i - 1].val)->obj),
 			    OBJ_ID(p[i - 1].val),
@@ -263,6 +275,7 @@ jones_lena_run (LENA_EXPR *e, int *result)
 	  }
 
 	default:
+	case OP_STR:
 	case OP_VAL:
 	  break;
 	  
@@ -288,6 +301,9 @@ jones_lena_parse (KB *kb, char *s)
   FACT      *f;
   char      *str;
   char      *op;
+  char      *txt = NULL;
+  int       len;
+
   if (!s) return NULL;
 
   if ((e = malloc (sizeof(LENA_EXPR))) == NULL)
@@ -317,7 +333,28 @@ jones_lena_parse (KB *kb, char *s)
 	jones_lena_expr_add_item (e, OP_TRUE, 0);
       else if (op[0] == 'F')
 	jones_lena_expr_add_item (e, OP_FALSE, 0);
+      else if (op[0] == '(')
+	{
+	  char *aux = op + 1;
+	  op[strlen(op)] = ' ';
+	  if ((aux = strchr (aux, ')')) == NULL)
+	    {
+	      fprintf (stderr, "String not finished...\n");
+	      free (str);
+	      free (e);
+	      return NULL;
+	    }
 
+	  *aux = 0;
+	  jones_lena_expr_add_item (e, OP_STR, strdup (op + 1));
+	  op = strtok (aux + 1, " ");
+	  continue;
+
+	}
+      else if (!strcasecmp (op, "say"))
+	{
+	  jones_lena_expr_add_item (e, OP_MSG, 0);
+	}
       else /* In any othercase this is a fact */
 	{
 	  /* Locate fact and add */

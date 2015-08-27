@@ -35,6 +35,9 @@ typedef struct kb_t KB;
 #define OP_TRUE  6
 #define OP_FALSE 7
 #define OP_UNKN  8
+#define OP_STR   9
+#define OP_MSG   10
+#define OP_VAR   11
 
 
 
