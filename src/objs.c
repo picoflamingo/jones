@@ -225,6 +225,7 @@ jones_obj_get_fact_by_indx (OBJECT *o, int indx)
   return 0;
 }
 
+#if 0
 FACT*
 jones_obj_get_or_create_fact (OBJECT *o, char *id, int val)
 {
@@ -242,6 +243,29 @@ jones_obj_get_or_create_fact (OBJECT *o, char *id, int val)
     }
 
   jones_fact_set (f, val);
+
+  return f;
+}
+#endif
+
+
+FACT*
+jones_obj_get_or_create_fact (OBJECT *o, char *id, int val)
+{
+  FACT* f;
+
+  if (!o) return NULL;
+  if (!id) return NULL;
+
+  if ((f = jones_obj_get_fact (o, id)) == NULL)
+    {
+      f = jones_fact_new (id);
+      jones_fact_set_obj (f, o);
+      jones_obj_add_fact (o, f);
+      jones_fact_set (f, val);      
+    }
+
+
 
   return f;
 }

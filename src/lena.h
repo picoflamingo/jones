@@ -18,11 +18,12 @@
  * along with Jones.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOGIC_ENG_H
-#define LOGIC_ENG_H
+#ifndef LENA_H
+#define LENA_H
 
 
-#include "nyx_list.h"
+#include <nyx_list.h>
+#include <objs.h>
 
 typedef struct kb_t KB;
 
@@ -32,13 +33,12 @@ typedef struct kb_t KB;
 #define OP_AND   3
 #define OP_OR    4
 #define OP_SET   5
-#define OP_TRUE  6
-#define OP_FALSE 7
-#define OP_UNKN  8
 #define OP_STR   9
 #define OP_MSG   10
 #define OP_VAR   11
-
+#define OP_REF   12
+#define OP_VREF  13
+#define OP_CONST 14
 
 
 typedef struct lena_item_t
@@ -53,13 +53,22 @@ typedef struct lena_op_t
   int  val;
 } LENA_OP;
 
+typedef struct lena_var_t
+{
+  char  *id;
+  char  *fact;
+} LENA_VAR;
+
 
 typedef struct lena_expr_t
 {
   NYX_BASIC_ITEM    bi;
   LENA_ITEM *i;
+  LENA_VAR  *v;
   int        n;
   char      *str;
+  int        npar;
+  int        fired;
 } LENA_EXPR;
 
 
@@ -70,9 +79,10 @@ extern "C" {
   LENA_EXPR* jones_lena_parse (KB *kb, char *str);
   int        jones_lena_free (LENA_EXPR *e);
   int        jones_lena_set_id (LENA_EXPR *e, char *n);
-  int        jones_lena_run (LENA_EXPR *e, int* r);
+  int        jones_lena_run_with_par (KB *kb, LENA_EXPR *e, FACT *o, int* r);
 
   int        jones_lena_expr_add_item (LENA_EXPR *e, int op, void*val);
+  LENA_VAR*  jones_lena_expr_add_var  (LENA_EXPR *e, char *str);
 
 #ifdef __cplusplus
 }

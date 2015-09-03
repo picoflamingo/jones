@@ -46,6 +46,14 @@ Jones.IS_COOL = !Jones.IS_BORING
 * run
 Executes lena rules on current knowledge base
 
+* Lena examples
+Using variables
+
+jones> $X.IS_BIG ! $X.IS_SMALL =
+jones> set A.IS_BIG T
+jones> set B.IS_BIG T
+jones> runp
+ 
 
 Full KB Commands Example
 -----------------------------------

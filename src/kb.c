@@ -103,6 +103,7 @@ jones_kb_add_fact (KB *kb, char *id, int val, void *data)
   return NULL;
 }
 
+
 LENA_EXPR*
 jones_kb_add_rule (KB *kb, char *str)
 {
@@ -162,54 +163,6 @@ jones_kb_find_fact (KB *kb, char *id)
   return NULL;
 }
 
-int
-jones_kb_run (KB *kb)
-{
-  int         i, j, n, fired, r;
-  LENA_EXPR   *e;
-  LENA_ITEM   *p;  
-
-  if (!kb) return -1;
-
-
-  fired = 0;
-  n = kb->lena_rules->n;
-
-  /* Force firing all rules */
-#if 0
-  for (i = 0; i < n; i++)
-    {
-      e = (LENA_EXPR*) kb->lena_rules->item[i];
-      p = e->i;
-      for (j = 0; j < e->n; j++)
-	{
-	  if ((p[j].op == OP_VAL)) ((FACT*)p[j].val)->iter = 1;
-	}
-
-    }
-
-#endif
-  for (i = 0; i < n; i++)
-    {
-      fired += jones_lena_run (kb->lena_rules->item[i], NULL);
-    }
-
-  printf ("KB(%s):%d rules fired out of %d\n", OBJ_ID(kb), fired, n);
-  /* Mark all facts as processed */
-  /* XXX: We should just keep a list of the fact that we have to re-arm*/
-  for (i = 0; i < n; i++)
-    {
-      e = (LENA_EXPR*) kb->lena_rules->item[i];
-      p = e->i;
-      for (j = 0; j < e->n; j++)
-	{
-	  if ((p[j].op == OP_VAL)) ((FACT*)p[j].val)->iter = 0;
-	}
-
-    }
-
-  return 0;
-}
 
 
 int        
@@ -244,6 +197,7 @@ jones_kb_dump_objects (KB *kb)
   n1 = kb->obj->n;
   printf ("KB(%s): %d objects\n", OBJ_ID(kb), n1);
   printf ("-------------------------------------------------\n");
+
   for (i = 0; i < n1; i++)
     {
       o = (OBJECT*) kb->obj->item[i];
@@ -256,12 +210,78 @@ jones_kb_dump_objects (KB *kb)
       for (j = 0; j < n; j++)
 	{
 	  jones_fact_dump (o->facts->item[j]);
+
 	}
       printf ("\n");
     }
 
   printf ("KB(%s): %d facts\n", OBJ_ID(kb), cnt);
   printf ("-------------------------------------------------\n");
+
+  return 0;
+}
+
+int        
+jones_kb_run (KB *kb)
+{
+  OBJECT  *o;
+  int     i, j, k, n, n1, cnt;
+  int     nr, fired;
+
+  if (!kb) return -1;
+
+  cnt = 0;
+  n1 = kb->obj->n;
+
+  nr = kb->lena_rules->n;
+  fired = 0;
+  for (i = 0; i < n1; i++)
+    {
+      o = (OBJECT*) kb->obj->item[i];
+      n = o->facts->n;
+      cnt += n;
+      if (n == 0) continue;
+
+
+      for (j = 0; j < n; j++)
+	{
+	  fprintf (stderr, "INFO:Firing all rules on fact %d(%s)\n",
+		   j, OBJ_ID(o->facts->item[j]));
+	  if (((FACT*)o->facts->item[j])->iter == 0) continue;
+	  for (k = 0; k < nr; k++)
+	    {
+	      fired += jones_lena_run_with_par (kb, kb->lena_rules->item[k], 
+						o->facts->item[j],
+						NULL);
+	      //jones_kb_dump_objects (kb);
+	    }
+	}
+    }
+
+  //printf ("All Rules Fired\n-----------------------------------------\n");
+  //jones_kb_dump_objects (kb);
+
+  //printf ("Reseting Facts\n-----------------------------------------\n");
+  for (i = 0; i < n1; i++)
+    {
+      o = (OBJECT*) kb->obj->item[i];
+      n = o->facts->n;
+      cnt += n;
+      if (n == 0) continue;
+
+      for (j = 0; j < n; j++)
+	{
+	  ((FACT*)o->facts->item[j])->iter = 0;
+	}
+    }
+
+  /* rearming rules */
+  n = kb->lena_rules->n;
+  for (i = 0; i < n; i++)
+    {
+      ((LENA_EXPR*)kb->lena_rules->item[i])->fired = 0;
+    }
+
 
   return 0;
 }

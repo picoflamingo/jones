@@ -130,7 +130,6 @@ parse (char *cmd)
 
       jones_kb_add_fact (_kb, p1, v, NULL);
     }
-
   else if (!strncasecmp (cmd, "run", strlen ("run")))
     {
       jones_kb_run (_kb);

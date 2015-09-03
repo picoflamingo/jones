@@ -25,12 +25,13 @@
 #include "facts.h"
 #include "objs.h"
 
+
 typedef struct kb_t
 {
   NYX_BASIC_ITEM bi;
   NYX_LIST       *lena_rules;
   NYX_LIST       *obj;
-  /* XXX: Add object list whenever object interface is updated */
+
 } KB;
 
 #ifdef __cplusplus
@@ -41,8 +42,8 @@ extern "C" {
   FACT*      jones_kb_find_fact (KB *kb, char *id);
   FACT*      jones_kb_add_fact (KB *kb, char *id, int val, void *data);
   LENA_EXPR* jones_kb_add_rule (KB *kb, char *str);
-  int        jones_kb_run (KB *kb);
 
+  int        jones_kb_run (KB *kb);
   int        jones_kb_dump_objects (KB *kb);
   int        jones_kb_dump_rules (KB *kb);
 #ifdef __cplusplus
